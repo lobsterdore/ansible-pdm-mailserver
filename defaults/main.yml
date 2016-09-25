@@ -1,0 +1,25 @@
+---
+
+pdm_mailserver_mysql_install_server: yes
+
+pdm_mailserver_mysql_root_password: changeme
+pdm_mailserver_mysql_root_user: root
+pdm_mailserver_mysql_host: localhost
+
+pdm_mailserver_mysql_support_enabled:  yes
+
+pdm_mailserver_mysql_database: mailserver
+pdm_mailserver_mysql_password: mail
+pdm_mailserver_mysql_user: mail
+
+pdm_mailserver_virtual_aliases:
+  - source: alias@example.com
+    destination: aliasedemail@example.com
+
+pdm_mailserver_virtual_domains:
+  - example.com
+
+pdm_mailserver_users:
+  - email: email@example.com
+    password: password
+    virtual_domain: example.com

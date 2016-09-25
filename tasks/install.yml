@@ -1,0 +1,34 @@
+---
+
+- name: Install mail packages
+  become: yes
+  apt:
+    update_cache: yes
+    name: "{{ item }}"
+  with_items:
+    - dovecot-core
+    - dovecot-imapd
+    - dovecot-pop3d
+    - dovecot-lmtpd
+    - postfix
+
+- name: Install mysql packages
+  become: yes
+  apt:
+    update_cache: yes
+    name: "{{ item }}"
+  with_items:
+    - mysql-server
+  when: pdm_mailserver_mysql_install_server and
+    pdm_mailserver_mysql_support_enabled
+
+- name: Install mail mysql packages
+  become: yes
+  apt:
+    update_cache: yes
+    name: "{{ item }}"
+  with_items:
+    - dovecot-mysql
+    - postfix-mysql
+    - python-mysqldb
+  when: pdm_mailserver_mysql_support_enabled

@@ -1,0 +1,14 @@
+---
+
+galaxy_info:
+  author: David Reed
+  description: Install and configure a mailserver using Dovecot, Postfix and MySQL
+  license: MIT
+
+  min_ansible_version: 2.x
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+
+dependencies: []

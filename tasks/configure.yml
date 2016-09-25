@@ -1,0 +1,61 @@
+---
+
+- name: Looks for extra MySQL settings
+  become: yes
+  stat:
+    path: /etc/mysql/conf.d/custom.cnf
+  register: custom_cnf
+
+- name: Remove anonymous user
+  mysql_user:
+    login_host: localhost
+    login_user: "{{ pdm_mailserver_mysql_root_user }}"
+    login_password: ""
+    name: ""
+    state: absent
+  when: not custom_cnf.stat.exists
+
+- name: Configure local MySQL root user password
+  become: yes
+  mysql_user:
+    login_host: localhost
+    login_user: "{{ pdm_mailserver_mysql_root_user }}"
+    login_password: ""
+    name: root
+    password: "{{ pdm_mailserver_mysql_root_password }}"
+    state: present
+  when: not custom_cnf.stat.exists
+
+- name: Configure cusom MySQL client options
+  become: yes
+  template:
+    src: mysql/custom.cnf.j2
+    dest: /etc/mysql/conf.d/custom.cnf
+  notify:
+    - restart mysql
+
+- name: Create database structure file
+  become: yes
+  template:
+    dest: /tmp/db_structure.sql
+    src: mysql/db_structure.sql.j2
+
+- name: Create database
+  mysql_db:
+    name: "{{ pdm_mailserver_mysql_database }}"
+    state: import
+    login_host: "{{ pdm_mailserver_mysql_host }}"
+    login_user: "{{ pdm_mailserver_mysql_root_user }}"
+    login_password: "{{ pdm_mailserver_mysql_root_password }}"
+    target: /tmp/db_structure.sql
+
+- name: Create database user
+  mysql_user:
+    name: "{{ pdm_mailserver_mysql_user }}"
+    password: "{{ pdm_mailserver_mysql_password }}"
+    priv: "{{ pdm_mailserver_mysql_database }}.*:ALL"
+    host: "%"
+    state: present
+    login_host: "{{ pdm_mailserver_mysql_host }}"
+    login_user: "{{ pdm_mailserver_mysql_root_user }}"
+    login_password: "{{ pdm_mailserver_mysql_root_password }}"

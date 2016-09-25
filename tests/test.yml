@@ -1,0 +1,7 @@
+---
+
+- name: Test PDM Mailserver Role
+  hosts: all
+
+  roles:
+    - role: ansible-pdm-mailserver
