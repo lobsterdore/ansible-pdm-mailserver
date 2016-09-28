@@ -32,3 +32,24 @@
     - postfix-mysql
     - python-mysqldb
   when: pdm_mailserver_mysql_support_enabled
+
+- name: Manage vmail group
+  become: yes
+  group:
+    name: vmail
+
+- name: Add vmail user
+  become: yes
+  user:
+    createhome: yes
+    group: vmail
+    home: /var/mail/
+    name: vmail
+
+- name: Add vhost directory
+  become: yes
+  file:
+    group: vmail
+    owner: vmail
+    path: /var/mail/vhosts
+    state: directory

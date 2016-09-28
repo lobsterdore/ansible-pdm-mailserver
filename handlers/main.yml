@@ -9,6 +9,30 @@
     login_password: "{{ pdm_mailserver_mysql_root_password }}"
     target: /tmp/db_structure.sql
 
+- name: reload dovecot
+  become: yes
+  service:
+    name: dovecot
+    state: reloaded
+
+- name: restart dovecot
+  become: yes
+  service:
+    name: dovecot
+    state: restarted
+
+- name: stop dovecot
+  become: yes
+  service:
+    name: dovecot
+    state: stopped
+
+- name: start dovecot
+  become: yes
+  service:
+    name: dovecot
+    state: started
+
 - name: reload postfix
   become: yes
   service:

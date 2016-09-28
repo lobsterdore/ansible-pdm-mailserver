@@ -1,5 +1,14 @@
 ---
 
+- name: Add vhost directories
+  become: yes
+  file:
+    group: vmail
+    owner: vmail
+    path: "/var/mail/vhosts/{{ item }}"
+    state: directory
+  with_items: "{{ pdm_mailserver_virtual_domains }}"
+
 - name: Looks for extra MySQL settings
   become: yes
   stat:
@@ -69,16 +78,44 @@
   notify:
     - restart postfix
 
-- name: Create postfix confs
+- name: Create postfix configs
   become: yes
   template:
-    dest: "/etc/postfix/{{ item }}.cf"
-    src: "postfix/{{ item }}.cf.j2"
+    dest: "/etc/postfix/{{ item }}"
+    src: "postfix/{{ item }}.j2"
   notify:
     - restart postfix
   with_items:
-    - mysql-virtual-mailbox-domains
-    - mysql-virtual-mailbox-maps
-    - mysql-virtual-alias-maps
-    - mysql-virtual-email2email
-    - master
+    - mysql-virtual-mailbox-domains.cf
+    - mysql-virtual-mailbox-maps.cf
+    - mysql-virtual-alias-maps.cf
+    - mysql-virtual-email2email.cf
+    - master.cf
+
+- name: Create dovecot configs
+  become: yes
+  template:
+    owner: vmail
+    group: dovecot
+    mode: 0700
+    dest: "/etc/dovecot/{{ item }}"
+    src: "dovecot/{{ item }}.j2"
+  notify:
+    - restart dovecot
+  with_items:
+    - dovecot.conf
+    - conf.d/10-mail.conf
+    - conf.d/10-auth.conf
+    - conf.d/auth-sql.conf.ext
+    - dovecot-sql.conf.ext
+    - conf.d/10-master.conf
+    - conf.d/10-ssl.conf
+
+- name: Update /etc/dovecot permissions
+  become: yes
+  file:
+    group: dovecot
+    mode: 0700
+    owner: vmail
+    path: /etc/dovecot
+    state: directory
