@@ -1,1 +1,10 @@
 ---
+
+- name: import database
+  mysql_db:
+    name: "{{ pdm_mailserver_mysql_database }}"
+    state: import
+    login_host: "{{ pdm_mailserver_mysql_host }}"
+    login_user: "{{ pdm_mailserver_mysql_root_user }}"
+    login_password: "{{ pdm_mailserver_mysql_root_password }}"
+    target: /tmp/db_structure.sql

@@ -43,11 +43,12 @@
 - name: Create database
   mysql_db:
     name: "{{ pdm_mailserver_mysql_database }}"
-    state: import
+    state: present
     login_host: "{{ pdm_mailserver_mysql_host }}"
     login_user: "{{ pdm_mailserver_mysql_root_user }}"
     login_password: "{{ pdm_mailserver_mysql_root_password }}"
-    target: /tmp/db_structure.sql
+  notify:
+    - import database
 
 - name: Create database user
   mysql_user:
