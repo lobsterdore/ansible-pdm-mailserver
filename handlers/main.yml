@@ -8,3 +8,27 @@
     login_user: "{{ pdm_mailserver_mysql_root_user }}"
     login_password: "{{ pdm_mailserver_mysql_root_password }}"
     target: /tmp/db_structure.sql
+
+- name: reload postfix
+  become: yes
+  service:
+    name: postfix
+    state: reloaded
+
+- name: restart postfix
+  become: yes
+  service:
+    name: postfix
+    state: restarted
+
+- name: stop postfix
+  become: yes
+  service:
+    name: postfix
+    state: stopped
+
+- name: start postfix
+  become: yes
+  service:
+    name: postfix
+    state: started

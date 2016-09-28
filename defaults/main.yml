@@ -12,6 +12,10 @@ pdm_mailserver_mysql_database: mailserver
 pdm_mailserver_mysql_password: mail
 pdm_mailserver_mysql_user: mail
 
+
+pdm_mailserver_postfix_hostname: "{{ ansible_fqdn }}"
+
+
 pdm_mailserver_virtual_aliases:
   - source: alias@example.com
     destination: aliasedemail@example.com
@@ -24,9 +28,3 @@ pdm_mailserver_users:
   - email: email@example.com
     password: password
     virtual_domain: example.com
-
-
-# INSERT INTO `mailserver`.`virtual_aliases`
-#   (`id`, `domain_id`, `source`, `destination`)
-# VALUES
-#   ('1', '1', 'alias@example.com', 'email1@example.com');

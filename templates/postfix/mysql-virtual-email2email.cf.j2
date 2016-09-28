@@ -1,0 +1,5 @@
+user = {{ pdm_mailserver_mysql_user }}
+password = {{ pdm_mailserver_mysql_password }}
+hosts = {{ pdm_mailserver_mysql_host }}
+dbname = {{ pdm_mailserver_mysql_database }}
+query = SELECT email FROM virtual_users WHERE email='%s'

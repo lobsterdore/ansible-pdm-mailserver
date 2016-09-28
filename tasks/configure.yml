@@ -60,3 +60,25 @@
     login_host: "{{ pdm_mailserver_mysql_host }}"
     login_user: "{{ pdm_mailserver_mysql_root_user }}"
     login_password: "{{ pdm_mailserver_mysql_root_password }}"
+
+- name: Create mailname
+  become: yes
+  template:
+    dest: /etc/mailname
+    src: postfix/mailname.j2
+  notify:
+    - restart postfix
+
+- name: Create postfix confs
+  become: yes
+  template:
+    dest: "/etc/postfix/{{ item }}.cf"
+    src: "postfix/{{ item }}.cf.j2"
+  notify:
+    - restart postfix
+  with_items:
+    - mysql-virtual-mailbox-domains
+    - mysql-virtual-mailbox-maps
+    - mysql-virtual-alias-maps
+    - mysql-virtual-email2email
+    - master
