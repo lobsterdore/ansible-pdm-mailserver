@@ -40,6 +40,13 @@ mail_location = maildir:/var/mail/vhosts/%d/%n
 # users can access all the shared mailboxes, assuming they have permissions
 # on filesystem level to do so.
 #
+
+
+namespace inbox {
+  inbox = yes
+}
+
+
 # REMEMBER: If you add any namespaces, the default namespace must be added
 # explicitly, ie. mail_location does nothing unless you have a namespace
 # without a location setting. Default namespace is simply done by having a

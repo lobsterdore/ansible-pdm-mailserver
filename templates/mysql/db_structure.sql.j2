@@ -40,7 +40,7 @@ VALUES
 
 INSERT INTO `mailserver`.`virtual_users`
   (`domain_id`, `password` , `email`)
-  SELECT id, '{{ user.password }}', '{{ user.email }}'
+  SELECT id, ENCRYPT('{{ user.password }}', CONCAT('$6$', SUBSTRING(SHA(RAND()), -16))), '{{ user.email }}'
     FROM virtual_domains
     WHERE `name` = '{{ user.virtual_domain }}';
 

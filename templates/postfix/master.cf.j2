@@ -9,6 +9,9 @@
 #               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
 smtp      inet  n       -       -       -       -       smtpd
+proxymap  unix  -       -       n       -       -       proxymap
+tlsmgr    unix  -       -       -       1000?   1       tlsmgr
+anvil     unix  -       -       -       -       1       anvil
 #smtp      inet  n       -       -       -       1       postscreen
 #smtpd     pass  -       -       -       -       -       smtpd
 #dnsblog   unix  -       -       -       -       0       dnsblog

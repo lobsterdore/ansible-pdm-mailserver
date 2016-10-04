@@ -5,4 +5,4 @@
 
   roles:
     - role: ansible-pdm-mailserver
-      pdm_mailserver_postfix_hostname: example.com
+      pdm_mailserver_postfix_hostname: local.dave.io
