@@ -10,49 +10,41 @@
     target: /tmp/db_structure.sql
 
 - name: reload dovecot
-  become: yes
   service:
     name: dovecot
     state: reloaded
 
 - name: restart dovecot
-  become: yes
   service:
     name: dovecot
     state: restarted
 
 - name: stop dovecot
-  become: yes
   service:
     name: dovecot
     state: stopped
 
 - name: start dovecot
-  become: yes
   service:
     name: dovecot
     state: started
 
 - name: reload postfix
-  become: yes
   service:
     name: postfix
     state: reloaded
 
 - name: restart postfix
-  become: yes
   service:
     name: postfix
     state: restarted
 
 - name: stop postfix
-  become: yes
   service:
     name: postfix
     state: stopped
 
 - name: start postfix
-  become: yes
   service:
     name: postfix
     state: started

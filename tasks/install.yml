@@ -1,7 +1,6 @@
 ---
 
 - name: Install mail packages
-  become: yes
   apt:
     update_cache: yes
     name: "{{ item }}"
@@ -13,17 +12,14 @@
     - postfix
 
 - name: Install mysql packages
-  become: yes
   apt:
     update_cache: yes
     name: "{{ item }}"
   with_items:
     - mysql-server
-  when: pdm_mailserver_mysql_install_server and
-    pdm_mailserver_mysql_support_enabled
+  when: pdm_mailserver_mysql_install_server
 
 - name: Install mail mysql packages
-  become: yes
   apt:
     update_cache: yes
     name: "{{ item }}"
@@ -31,15 +27,12 @@
     - dovecot-mysql
     - postfix-mysql
     - python-mysqldb
-  when: pdm_mailserver_mysql_support_enabled
 
 - name: Manage vmail group
-  become: yes
   group:
     name: vmail
 
 - name: Add vmail user
-  become: yes
   user:
     createhome: yes
     group: vmail
@@ -47,7 +40,6 @@
     name: vmail
 
 - name: Add vhost directory
-  become: yes
   file:
     group: vmail
     owner: vmail

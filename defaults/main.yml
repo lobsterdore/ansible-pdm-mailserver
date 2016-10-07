@@ -6,15 +6,11 @@ pdm_mailserver_mysql_root_password: changeme
 pdm_mailserver_mysql_root_user: root
 pdm_mailserver_mysql_host: localhost
 
-pdm_mailserver_mysql_support_enabled:  yes
-
 pdm_mailserver_mysql_database: mailserver
 pdm_mailserver_mysql_password: mail
 pdm_mailserver_mysql_user: mail
 
-
 pdm_mailserver_postfix_hostname: "{{ ansible_fqdn }}"
-
 
 pdm_mailserver_virtual_aliases:
   - source: alias@local.dave.io

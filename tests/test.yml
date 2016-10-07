@@ -5,4 +5,5 @@
 
   roles:
     - role: ansible-pdm-mailserver
+      become: yes
       pdm_mailserver_postfix_hostname: local.dave.io
