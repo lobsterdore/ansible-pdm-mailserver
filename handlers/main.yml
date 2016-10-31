@@ -1,50 +1,43 @@
 ---
 
-- name: import database
-  mysql_db:
-    name: "{{ pdm_mailserver_mysql_database }}"
-    state: import
-    login_host: "{{ pdm_mailserver_mysql_host }}"
-    login_user: "{{ pdm_mailserver_mysql_root_user }}"
-    login_password: "{{ pdm_mailserver_mysql_root_password }}"
-    target: /tmp/db_structure.sql
-
-- name: reload dovecot
-  service:
-    name: dovecot
-    state: reloaded
-
-- name: restart dovecot
-  service:
-    name: dovecot
-    state: restarted
-
-- name: stop dovecot
-  service:
-    name: dovecot
-    state: stopped
-
-- name: start dovecot
-  service:
-    name: dovecot
-    state: started
-
-- name: reload postfix
-  service:
-    name: postfix
-    state: reloaded
-
 - name: restart postfix
   service:
     name: postfix
     state: restarted
 
-- name: stop postfix
-  service:
-    name: postfix
-    state: stopped
+- name: restart dovecot
+  service: name=dovecot state=restarted
 
-- name: start postfix
-  service:
-    name: postfix
-    state: started
+- name: restart opendkim
+  service: name=opendkim state=restarted
+
+- name: restart solr
+  service: name=tomcat7 state=restarted
+
+- name: import sql postfix
+  mysql_db:
+    name: "{{ mail_db_database }}"
+    state: import
+    login_host: localhost
+    login_user: "{{ mail_db_username }}"
+    login_password: "{{ mail_db_password }}"
+    target: /etc/postfix/import.sql
+  notify: restart postfix
+
+- name: restart opendmarc
+  service: name=opendmarc state=restarted
+
+- name: restart rspamd
+  service: name=rspamd state=restarted
+
+- name: restart ntp
+  service: name=ntp state=restarted
+
+- name: restart apache
+  service: name=apache2 state=restarted
+
+- name: restart fail2ban
+  service: name=fail2ban state=restarted
+
+- name: restart ssh
+  service: name=ssh state=restarted

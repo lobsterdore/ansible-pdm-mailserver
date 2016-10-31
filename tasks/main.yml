@@ -1,11 +1,174 @@
+
 ---
 
-- name: Install
-  include: install.yml
-  tags:
-    - build
 
-- name: Configure
-  include: configure.yml
+
+# Defines tasks applicable for postgreSQL
+
+
+- name: Install essentials
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - git
+
+- name: Install MySQL
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - mysql-server
+    - python-mysqldb
   tags:
-    - configure
+    - dependencies
+
+- name: Download LetsEncrypt release
+  git: repo=https://github.com/letsencrypt/letsencrypt
+       dest=/root/letsencrypt
+       version=master
+       force=yes
+
+- name: Create directory for LetsEncrypt configuration and certificates
+  file: state=directory path=/etc/letsencrypt group=root owner=root
+
+- name: Configure LetsEncrypt
+  template:
+    src=etc_letsencrypt_cli.conf.j2
+    dest=/etc/letsencrypt/cli.conf
+    owner=root
+    group=root
+
+- name: Install LetsEncrypt package dependencies
+  command: /root/letsencrypt/letsencrypt-auto --help
+  register: le_deps_result
+  changed_when: "'Bootstrapping dependencies' in le_deps_result.stdout"
+
+- name: Create directory for pre-renewal scripts
+  file: state=directory path=/etc/letsencrypt/prerenew group=root owner=root
+
+- name: Create directory for post-renewal scripts
+  file: state=directory path=/etc/letsencrypt/postrenew group=root owner=root
+
+- name: Install crontab entry for LetsEncrypt
+  copy:
+    src: etc_cron-daily_letsencrypt-renew
+    dest: /etc/cron.daily/letsencrypt-renew
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create live directory for LetsEncrypt cron job
+  file: state=directory path=/etc/letsencrypt/live group=root owner=root
+
+- name: Get an SSL certificate for {{ domain }} from Let's Encrypt
+  script: letsencrypt-gencert {{ domain }} creates=/etc/letsencrypt/live/{{ domain }}/privkey.pem
+  when: ansible_ssh_user != "vagrant"
+
+- name: Modify permissions to allow ssl-cert group access
+  file:
+    path: /etc/letsencrypt/archive
+    owner: root
+    mode: 0750
+  when: ansible_ssh_user != "vagrant"
+
+### Several steps to install a self-signed wildcard key to support offline testing
+
+- name: Create live directory for testing keys
+  file: dest=/etc/letsencrypt/live/{{ domain }} state=directory
+    owner=root group=root mode=0755
+  when: ansible_ssh_user == "vagrant"
+
+- name: Copy SSL wildcard private key for testing
+  copy:
+    src: wildcard_private.key
+    dest: "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
+    owner: root
+    mode: 0640
+  register: private_key
+  when: ansible_ssh_user == "vagrant"
+
+- name: Copy SSL public certificate into place for testing
+  copy: src=wildcard_public_cert.crt
+    dest=/etc/letsencrypt/live/{{ domain }}/cert.pem
+    group=root owner=root mode=0644
+  register: certificate
+  when: ansible_ssh_user == "vagrant"
+
+- name: Copy SSL CA combined certificate into place for testing
+  copy: src=wildcard_ca.pem
+    dest=/etc/letsencrypt/live/{{ domain }}/chain.pem
+    group=root owner=root mode=0644
+  register: ca_certificate
+  when: ansible_ssh_user == "vagrant"
+
+- name: Create a combined SSL cert for testing
+  shell: cat /etc/letsencrypt/live/{{ domain }}/cert.pem
+    /etc/letsencrypt/live/{{ domain }}/chain.pem >
+    /etc/letsencrypt/live/{{ domain }}/fullchain.pem
+  when: (private_key.changed or certificate.changed or ca_certificate.changed) and ansible_ssh_user == "vagrant"
+
+- name: Set permissions on combined SSL public cert
+  file: name=/etc/letsencrypt/live/{{ domain }}/fullchain.pem mode=0644
+  when: ansible_ssh_user == "vagrant"
+
+
+- name: Install necessities and nice-to-haves
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - apache2
+
+- name: Disable default Apache site
+  command: a2dissite 000-default removes=/etc/apache2/sites-enabled/000-default
+  notify: restart apache
+
+- name: Enable Apache headers module
+  command: a2enmod headers creates=/etc/apache2/mods-enabled/headers.load
+  notify: restart apache
+
+- name: Create ServerName configuration file for Apache
+  template: src=fqdn.j2 dest=/etc/apache2/conf-available/fqdn.conf
+
+- name: Set ServerName for Apache
+  command: a2enconf fqdn creates=/etc/apache2/conf-enabled/fqdn.conf
+  notify: restart apache
+
+
+
+
+- name: Create strong Diffie-Hellman group
+  command: openssl dhparam -out /etc/ssl/private/dhparam2048.pem 2048
+    creates=/etc/ssl/private/dhparam2048.pem
+
+- name: Enable Apache SSL module
+  command: a2enmod ssl creates=/etc/apache2/mods-enabled/ssl.load
+  notify: restart apache
+
+- name: Enable Apache SOCACHE_SHMCB module for the SSL stapling cache
+  command: a2enmod socache_shmcb
+    creates=/etc/apache2/mods-enabled/socache_shmcb.load
+  notify: restart apache
+
+- name: Add common Apache SSL config
+  template: src=etc_apache2_conf-available_ssl.conf.j2
+    dest=/etc/apache2/conf-available/ssl.conf
+    owner=root
+    group=root
+  notify: restart apache
+
+- name: Enable Apache SSL config
+  command: a2enconf ssl creates=/etc/apache2/conf-enabled/ssl.conf
+  notify: restart apache
+
+
+
+
+
+### Back to normal
+
+- include: postfix.yml tags=postfix
+- include: dovecot.yml tags=dovecot
+- include: opendkim.yml tags=opendkim
+- include: opendmarc.yml tags=opendmarc
+- include: rspamd.yml tags=rspamd
+#- include: solr.yml tags=solr
+- include: checkrbl.yml tags=checkrbl
+- include: z-push.yml tags=zpush
+- include: autoconfig.yml tags=autoconfig
+

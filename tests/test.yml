@@ -3,7 +3,14 @@
 - name: Test PDM Mailserver Role
   hosts: all
 
-  roles:
-    - role: ansible-pdm-mailserver
+  pre_tasks:
+    - name: Update apt
       become: yes
-      pdm_mailserver_postfix_hostname: local.dave.io
+      apt:
+        cache_valid_time: 0
+        update_cache: yes
+
+  roles:
+    - role: mailserver
+      become: yes
+

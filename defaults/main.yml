@@ -1,26 +1,60 @@
----
+common_timezone: 'Etc/UTC'
 
-pdm_mailserver_mysql_install_server: yes
+domain: "local.dave.io"
+main_user_name: "example"
 
-pdm_mailserver_mysql_root_password: changeme
-pdm_mailserver_mysql_root_user: root
-pdm_mailserver_mysql_host: localhost
+admin_email: "{{ main_user_name }}@{{ domain }}"
 
-pdm_mailserver_mysql_database: mailserver
-pdm_mailserver_mysql_password: mail
-pdm_mailserver_mysql_user: mail
+friendly_networks:
+  - "172.16.100.0/24"
 
-pdm_mailserver_postfix_hostname: "{{ ansible_fqdn }}"
+secret_root: '{{ inventory_dir | realpath }}'
+secret_name: 'secret'
+secret: '{{ secret_root + "/" + secret_name }}'
 
-pdm_mailserver_virtual_aliases:
-  - source: alias@local.dave.io
-    destination: aliasedemail@local.dave.io
-    virtual_domain: local.dave.io
+letsencrypt_server: "https://acme-v01.api.letsencrypt.org/directory"
 
-pdm_mailserver_virtual_domains:
-  - local.dave.io
+db_admin_username: "root"
+db_admin_password: ""
 
-pdm_mailserver_users:
-  - email: email@local.dave.io
-    password: password
-    virtual_domain: local.dave.io
+mail_db_username: "mailuser"
+mail_db_password: "password"
+mail_db_database: "mailserver"
+
+mail_server_hostname: "mail.{{ domain }}"
+mail_server_autoconfig_hostname: "autoconfig.{{ domain }}"
+mail_header_privacy: 1
+
+# mail
+mail_virtual_domains:
+  - name: "{{ domain }}"
+    pk_id: 1
+mail_virtual_users:
+  - account: "{{ main_user_name }}"
+    domain: "{{ domain }}"
+    password_hash: "$6$2qWeQLBahbfcmOQJ$RLKAOEWdt2gU8/ltKjRdelj51KvW4QKzAhCasAcHwqDy736nttxbS4qnL9i9O2j66YRRqgXUbJFNndG5BB6mR."
+    domain_pk_id: 1
+mail_virtual_aliases:
+  - source: "root@{{ domain }}"
+    destination: "{{ admin_email }}"
+    domain_pk_id: 1
+  - source: "postmaster@{{ domain }}"
+    destination: "{{ admin_email }}"
+    domain_pk_id: 1
+  - source: "webmaster@{{ domain }}"
+    destination: "{{ admin_email }}"
+    domain_pk_id: 1
+  - source: "abuse@{{ domain }}"
+    destination: "{{ admin_email }}"
+    domain_pk_id: 1
+
+
+# opendmarc
+mail_db_opendmarc_username: opendmarc
+mail_db_opendmarc_database: opendmarc
+mail_db_opendmarc_password: "password"
+
+# zpush
+zpush_version: 2.1.1-1788
+# common_timezone is a sovereign variable
+zpush_timezone: "{{ common_timezone|default('Etc/UTC') }}"

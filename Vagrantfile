@@ -1,17 +1,13 @@
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
 
-  config.vm.network :private_network, ip: '192.168.10.80'
+  config.vm.network :private_network, ip: '192.168.10.90'
 
   config.vm.hostname = "local.dave.io"
-  config.hostsupdater.aliases = [ "local.dave.io" ]
+  config.hostsupdater.aliases = [ "autoconfig.local.dave.io", "local.dave.io", "mail.local.dave.io" ]
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "tests/test.yml"
-    ansible.tags = [
-      'build',
-      'configure'
-    ]
   end
 
   config.vm.provider "virtualbox" do |v|
