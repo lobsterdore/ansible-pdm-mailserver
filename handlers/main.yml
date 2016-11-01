@@ -6,13 +6,19 @@
     state: restarted
 
 - name: restart dovecot
-  service: name=dovecot state=restarted
+  service:
+    name: dovecot
+    state: restarted
 
 - name: restart opendkim
-  service: name=opendkim state=restarted
+  service:
+    name: opendkim
+    state: restarted
 
 - name: restart solr
-  service: name=tomcat7 state=restarted
+  service:
+    name: tomcat7
+    state: restarted
 
 - name: import sql postfix
   mysql_db:
@@ -25,19 +31,31 @@
   notify: restart postfix
 
 - name: restart opendmarc
-  service: name=opendmarc state=restarted
+  service:
+    name: opendmarc
+    state: restarted
 
 - name: restart rspamd
-  service: name=rspamd state=restarted
+  service:
+    name: rspamd
+    state: restarted
 
 - name: restart ntp
-  service: name=ntp state=restarted
+  service:
+    name: ntp
+    state: restarted
 
 - name: restart apache
-  service: name=apache2 state=restarted
+  service:
+    name: apache2
+    state: restarted
 
 - name: restart fail2ban
-  service: name=fail2ban state=restarted
+  service:
+    name: fail2ban
+    state: restarted
 
 - name: restart ssh
-  service: name=ssh state=restarted
+  service:
+    name: ssh
+    state: restarted

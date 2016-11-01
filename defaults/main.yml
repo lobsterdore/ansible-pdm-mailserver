@@ -48,7 +48,6 @@ mail_virtual_aliases:
     destination: "{{ admin_email }}"
     domain_pk_id: 1
 
-
 # opendmarc
 mail_db_opendmarc_username: opendmarc
 mail_db_opendmarc_database: opendmarc
