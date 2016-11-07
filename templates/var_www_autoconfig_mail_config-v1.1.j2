@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <clientConfig version="1.1">
-    <emailProvider id="{{ domain }}">
-        <domain>{{ domain }}</domain>
-        <displayName>{{ domain }}</displayName>
-        <displayShortName>{{ domain }}</displayShortName>
+    <emailProvider id="{{ ansible_pdm_mailserver_domain }}">
+        <domain>{{ ansible_pdm_mailserver_domain }}</domain>
+        <displayName>{{ ansible_pdm_mailserver_domain }}</displayName>
+        <displayShortName>{{ ansible_pdm_mailserver_domain }}</displayShortName>
         <incomingServer type="imap">
             <hostname>{{ mail_server_hostname }}</hostname>
             <port>993</port>

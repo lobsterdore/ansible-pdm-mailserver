@@ -73,10 +73,10 @@
     group: root
     owner: root
 
-- name: "Get an SSL certificate for {{ domain }} from Let's Encrypt"
-  script: "letsencrypt-gencert {{ domain }}"
+- name: "Get an SSL certificate for {{ ansible_pdm_mailserver_domain }} from Let's Encrypt"
+  script: "letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
   args:
-    creates: "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
+    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
   when: ansible_ssh_user != "vagrant"
 
 - name: Modify permissions to allow ssl-cert group access
@@ -90,7 +90,7 @@
 
 - name: Create live directory for testing keys
   file:
-    dest: "/etc/letsencrypt/live/{{ domain }}"
+    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}"
     state: directory
     owner: root
     group: root
@@ -100,7 +100,7 @@
 - name: Copy SSL wildcard private key for testing
   copy:
     src: wildcard_private.key
-    dest: "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
+    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
     owner: root
     mode: 0640
   register: private_key
@@ -109,7 +109,7 @@
 - name: Copy SSL public certificate into place for testing
   copy:
     src: wildcard_public_cert.crt
-    dest: "/etc/letsencrypt/live/{{ domain }}/cert.pem"
+    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/cert.pem"
     group: root
     owner: root
     mode: 0644
@@ -119,7 +119,7 @@
 - name: Copy SSL CA combined certificate into place for testing
   copy:
     src: wildcard_ca.pem
-    dest: "/etc/letsencrypt/live/{{ domain }}/chain.pem"
+    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/chain.pem"
     group: root
     owner: root
     mode: 0644
@@ -128,14 +128,14 @@
 
 - name: Create a combined SSL cert for testing
   shell: |
-    cat /etc/letsencrypt/live/{{ domain }}/cert.pem
-    /etc/letsencrypt/live/{{ domain }}/chain.pem >
-    /etc/letsencrypt/live/{{ domain }}/fullchain.pem
+    cat /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/cert.pem
+    /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/chain.pem >
+    /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/fullchain.pem
   when: (private_key.changed or certificate.changed or ca_certificate.changed) and ansible_ssh_user == "vagrant"
 
 - name: Set permissions on combined SSL public cert
   file:
-    name: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+    name: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/fullchain.pem"
     mode: 0644
   when: ansible_ssh_user == "vagrant"
 
