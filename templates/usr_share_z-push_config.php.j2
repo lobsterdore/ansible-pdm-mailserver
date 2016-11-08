@@ -45,7 +45,7 @@
  *  Default settings
  */
     // Defines the default time zone, change e.g. to "Europe/London" if necessary
-    define('TIMEZONE', '{{ zpush_timezone }}');
+    define('TIMEZONE', '{{ ansible_pdm_mailserver_zpush_timezone }}');
 
     // Defines the base path on the server
     define('BASE_PATH', dirname($_SERVER['SCRIPT_FILENAME']). '/');

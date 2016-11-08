@@ -7,7 +7,7 @@
 
 <VirtualHost *:80>
 
-    ServerName {{ mail_server_autoconfig_hostname }}
+    ServerName {{ ansible_pdm_mailserver_mail_server_autoconfig_hostname }}
 
     DocumentRoot            "/var/www/autoconfig"
     Options                 -Indexes
@@ -16,7 +16,7 @@
 </VirtualHost>
 
 <VirtualHost *:443>
-    ServerName {{ mail_server_autoconfig_hostname }}
+    ServerName {{ ansible_pdm_mailserver_mail_server_autoconfig_hostname }}
     SSLEngine On
 
     DocumentRoot            "/var/www/autoconfig"

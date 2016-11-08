@@ -14,15 +14,15 @@
 
 - name: Download z-push release
   get_url:
-    url: "http://download.z-push.org/final/2.1/z-push-{{ zpush_version }}.tar.gz"
-    dest: "/root/z-push-{{ zpush_version }}.tar.gz"
+    url: "http://download.z-push.org/final/2.1/z-push-{{ ansible_pdm_mailserver_zpush_version }}.tar.gz"
+    dest: "/root/z-push-{{ ansible_pdm_mailserver_zpush_version }}.tar.gz"
 
 - name: Decompress z-push source
   unarchive:
-    src: "/root/z-push-{{ zpush_version }}.tar.gz"
+    src: "/root/z-push-{{ ansible_pdm_mailserver_zpush_version }}.tar.gz"
     dest: /root
     copy: no
-    creates: "/root/z-push-{{ zpush_version }}"
+    creates: "/root/z-push-{{ ansible_pdm_mailserver_zpush_version }}"
 
 - name: Create /usr/share/z-push
   file:
@@ -30,7 +30,7 @@
     path: /usr/share/z-push
 
 - name: Copy z-push source files to /usr/share/z-push
-  shell: "cp -R z-push-{{ zpush_version }}/* /usr/share/z-push/"
+  shell: "cp -R z-push-{{ ansible_pdm_mailserver_zpush_version }}/* /usr/share/z-push/"
   args:
     chdir: /root
   tags:

@@ -7,33 +7,33 @@ ansible_pdm_mailserver_admin_email: "{{ ansible_pdm_mailserver_main_user_name }}
 
 ansible_pdm_mailserver_friendly_networks: [ ]
 
-letsencrypt_server: "https://acme-v01.api.letsencrypt.org/directory"
+ansible_pdm_mailserver_letsencrypt_server: "https://acme-v01.api.letsencrypt.org/directory"
 
-db_admin_username: "root"
-db_admin_password: ""
+ansible_pdm_mailserver_db_admin_username: "root"
+ansible_pdm_mailserver_db_admin_password: ""
 
-mail_db_username: "mailuser"
-mail_db_password: "password"
-mail_db_database: "mailserver"
+ansible_pdm_mailserver_mail_db_username: "mailuser"
+ansible_pdm_mailserver_mail_db_password: "password"
+ansible_pdm_mailserver_mail_db_database: "mailserver"
 
-mail_server_hostname: "mail.{{ ansible_pdm_mailserver_domain }}"
-mail_server_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserver_domain }}"
-mail_header_privacy: 1
+ansible_pdm_mailserver_mail_server_hostname: "mail.{{ ansible_pdm_mailserver_domain }}"
+ansible_pdm_mailserver_mail_server_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserver_domain }}"
+ansible_pdm_mailserver_mail_header_privacy: 1
 
 # mail
-mail_virtual_domains:
+ansible_pdm_mailserver_mail_virtual_domains:
   - name: "{{ ansible_pdm_mailserver_domain }}"
     pk_id: 1
   - name: "local.davereed.io"
     pk_id: 2
 
-mail_virtual_users:
+ansible_pdm_mailserver_mail_virtual_users:
   - account: "{{ ansible_pdm_mailserver_main_user_name }}"
     domain: "{{ ansible_pdm_mailserver_domain }}"
     password_hash: "$6$2qWeQLBahbfcmOQJ$RLKAOEWdt2gU8/ltKjRdelj51KvW4QKzAhCasAcHwqDy736nttxbS4qnL9i9O2j66YRRqgXUbJFNndG5BB6mR."
     domain_pk_id: 1
 
-mail_virtual_aliases:
+ansible_pdm_mailserver_mail_virtual_aliases:
   - source: "root@{{ ansible_pdm_mailserver_domain }}"
     destination: "{{ ansible_pdm_mailserver_admin_email }}"
     domain_pk_id: 1
@@ -48,11 +48,11 @@ mail_virtual_aliases:
     domain_pk_id: 1
 
 # opendmarc
-mail_db_opendmarc_username: opendmarc
-mail_db_opendmarc_database: opendmarc
-mail_db_opendmarc_password: "password"
+ansible_pdm_mailserver_mail_db_opendmarc_username: opendmarc
+ansible_pdm_mailserver_mail_db_opendmarc_database: opendmarc
+ansible_pdm_mailserver_mail_db_opendmarc_password: "password"
 
 # zpush
-zpush_version: 2.1.1-1788
+ansible_pdm_mailserver_zpush_version: 2.1.1-1788
 # ansible_pdm_mailserver_timezone is a sovereign variable
-zpush_timezone: "{{ ansible_pdm_mailserver_timezone|default('Etc/UTC') }}"
+ansible_pdm_mailserver_zpush_timezone: "{{ ansible_pdm_mailserver_timezone|default('Etc/UTC') }}"

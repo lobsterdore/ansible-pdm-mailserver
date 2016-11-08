@@ -32,7 +32,7 @@
     owner: vmail
     group: dovecot
     mode: 0770
-  with_items: "{{ mail_virtual_domains }}"
+  with_items: "{{ ansible_pdm_mailserver_mail_virtual_domains }}"
 
 - name: Ensure mail directories are in place
   file:
@@ -40,7 +40,7 @@
     path: "/decrypted/{{ item.domain }}/{{ item.account }}"
     owner: vmail
     group: dovecot
-  with_items: "{{ mail_virtual_users }}"
+  with_items: "{{ ansible_pdm_mailserver_mail_virtual_users }}"
 
 - name: Copy dovecot.conf into place
   copy:

@@ -16,22 +16,22 @@
 - name: Create database for mail server
   mysql_db:
     login_host: localhost
-    login_user: "{{ db_admin_username }}"
-    login_password: "{{ db_admin_password }}"
-    name: "{{ mail_db_database }}"
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    name: "{{ ansible_pdm_mailserver_mail_db_database }}"
     state: present
   notify: import sql postfix
 
 - name: Create database user for mail server
   mysql_user:
     login_host: localhost
-    login_user: "{{ db_admin_username }}"
-    login_password: "{{ db_admin_password }}"
-    name: "{{ mail_db_username }}"
-    password: "{{ mail_db_password }}"
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    name: "{{ ansible_pdm_mailserver_mail_db_username }}"
+    password: "{{ ansible_pdm_mailserver_mail_db_password }}"
     state: present
     host: "%"
-    priv: "{{ mail_db_database }}.*:ALL"
+    priv: "{{ ansible_pdm_mailserver_mail_db_database }}.*:ALL"
   notify: import sql postfix
 
 - name: Copy import.sql
@@ -49,7 +49,7 @@
     state: directory
     owner: root
     group: root
-  when: mail_header_privacy == 1
+  when: ansible_pdm_mailserver_mail_header_privacy == 1
 
 - name: Copy smtp_header_checks.pcre
   copy:
@@ -57,7 +57,7 @@
     dest: /etc/postfix/maps/smtp_header_checks.pcre
     owner: root
     group: root
-  when: mail_header_privacy == 1
+  when: ansible_pdm_mailserver_mail_header_privacy == 1
 
 - name: Copy main.cf
   template:
