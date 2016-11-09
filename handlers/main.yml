@@ -22,11 +22,11 @@
 
 - name: import sql postfix
   mysql_db:
-    name: "{{ ansible_pdm_mailserver_mail_db_database }}"
+    name: "{{ ansible_pdm_mailserver_db_database }}"
     state: import
     login_host: localhost
-    login_user: "{{ ansible_pdm_mailserver_mail_db_username }}"
-    login_password: "{{ ansible_pdm_mailserver_mail_db_password }}"
+    login_user: "{{ ansible_pdm_mailserver_db_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_password }}"
     target: /etc/postfix/import.sql
   notify: restart postfix
 

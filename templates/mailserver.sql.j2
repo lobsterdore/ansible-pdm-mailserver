@@ -24,13 +24,13 @@ CREATE TABLE `virtual_aliases` (
   FOREIGN KEY (domain_id) REFERENCES virtual_domains(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-{% for virtual_domain in ansible_pdm_mailserver_mail_virtual_domains %}
+{% for virtual_domain in ansible_pdm_mailserver_virtual_domains %}
 INSERT INTO `virtual_domains` (`id`, `name`)
   VALUES
     ('{{ virtual_domain.pk_id }}', '{{ virtual_domain.name }}');
 {% endfor %}
 
-{% for virtual_user in ansible_pdm_mailserver_mail_virtual_users %}
+{% for virtual_user in ansible_pdm_mailserver_virtual_users %}
 INSERT INTO `virtual_users`  (`domain_id`, `password` , `email`)
   VALUES (
     '{{ virtual_user.domain_pk_id }}',
@@ -39,8 +39,8 @@ INSERT INTO `virtual_users`  (`domain_id`, `password` , `email`)
   );
 {% endfor %}
 
-{% if ansible_pdm_mailserver_mail_virtual_aliases is defined %}
-{% for virtual_alias in ansible_pdm_mailserver_mail_virtual_aliases %}
+{% if ansible_pdm_mailserver_virtual_aliases is defined %}
+{% for virtual_alias in ansible_pdm_mailserver_virtual_aliases %}
 INSERT INTO `virtual_aliases` (`domain_id`, `source`, `destination`)
     VALUES ('{{ virtual_alias.domain_pk_id }}', '{{ virtual_alias.source }}', '{{virtual_alias.destination }}');
 {% endfor %}

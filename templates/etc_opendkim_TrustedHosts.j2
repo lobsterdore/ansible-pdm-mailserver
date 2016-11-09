@@ -1,8 +1,8 @@
 127.0.0.1
 {{ ansible_default_ipv4.address }}
-{% for domain in ansible_pdm_mailserver_mail_virtual_domains %}
+{% for domain in ansible_pdm_mailserver_virtual_domains %}
 {{ domain.name }}
 {% endfor %}
-{% for domain in ansible_pdm_mailserver_mail_virtual_domains %}
-{{ ansible_pdm_mailserver_mail_server_hostname }}
+{% for domain in ansible_pdm_mailserver_virtual_domains %}
+{{ ansible_pdm_mailserver_server_hostname }}
 {% endfor %}

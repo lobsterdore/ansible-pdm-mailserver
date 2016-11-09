@@ -24,13 +24,13 @@
     path: "/etc/opendkim/keys/{{ item.name }}"
     group: opendkim
     owner: opendkim
-  with_items: "{{ ansible_pdm_mailserver_mail_virtual_domains }}"
+  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
 
 - name: Generate OpenDKIM keys
   command: "opendkim-genkey -r -d {{ item.name }} -D /etc/opendkim/keys/{{ item.name }}/"
   args:
     creates: "/etc/opendkim/keys/{{ item.name }}/default.private"
-  with_items: "{{ ansible_pdm_mailserver_mail_virtual_domains }}"
+  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
 
 - name: Put opendkim.conf into place
   copy:

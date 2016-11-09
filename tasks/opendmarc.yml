@@ -59,20 +59,20 @@
 
 - name: Create database user for OpenDMARC reports
   mysql_user:
-    user: "{{ ansible_pdm_mailserver_mail_db_opendmarc_username }}"
-    password: "{{ ansible_pdm_mailserver_mail_db_opendmarc_password }}"
+    user: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
+    password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
     state: present
     priv: "opendmarc.*:ALL"
 
 - name: Create database for OpenDMARC reports
   mysql_db:
-    name: "{{ ansible_pdm_mailserver_mail_db_opendmarc_database }}"
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
     state: present
   register: db_created
 
 - name: Import opendmarc schema
   mysql_db:
-    name: "{{ ansible_pdm_mailserver_mail_db_opendmarc_database }}"
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
     state: import
     target: /usr/share/doc/opendmarc/schema.mysql
   when: db_created.changed
