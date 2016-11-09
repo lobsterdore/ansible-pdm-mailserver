@@ -15,11 +15,6 @@
     name: opendkim
     state: restarted
 
-- name: restart solr
-  service:
-    name: tomcat7
-    state: restarted
-
 - name: import sql postfix
   mysql_db:
     name: "{{ ansible_pdm_mailserver_db_database }}"
