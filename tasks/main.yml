@@ -212,6 +212,5 @@
 - include: opendmarc.yml tags=opendmarc
 - include: rspamd.yml tags=rspamd
 - include: checkrbl.yml tags=checkrbl
-- include: z-push.yml tags=zpush
 - include: autoconfig.yml tags=autoconfig
 

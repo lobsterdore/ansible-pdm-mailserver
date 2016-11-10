@@ -51,8 +51,3 @@ ansible_pdm_mailserver_virtual_aliases:
 ansible_pdm_mailserver_db_opendmarc_username: opendmarc
 ansible_pdm_mailserver_db_opendmarc_database: opendmarc
 ansible_pdm_mailserver_db_opendmarc_password: "password"
-
-# zpush
-ansible_pdm_mailserver_zpush_version: 2.1.1-1788
-# ansible_pdm_mailserver_timezone is a sovereign variable
-ansible_pdm_mailserver_zpush_timezone: "{{ ansible_pdm_mailserver_timezone|default('Etc/UTC') }}"
