@@ -11,6 +11,6 @@
         update_cache: yes
 
   roles:
-    - role: mailserver
+    - role: ansible-pdm-mailserver
       become: yes
 

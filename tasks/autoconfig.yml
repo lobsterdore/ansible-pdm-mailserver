@@ -25,16 +25,17 @@
     group: www-data
     owner: root
 
-- name: Configure the mail autoconfiguration virtualhost
+- name: Create autoconfig site
   template:
-    src: etc_apache2_sites-available_autoconfig.j2
-    dest: /etc/apache2/sites-available/autoconfig.conf
-    group: root
-    owner: root
-  notify: restart apache
+    src: etc_nginx_autoconfig.conf.j2
+    dest: /etc/nginx/sites-available/autoconfig.conf
+  notify:
+    - restart nginx
 
-- name: Enable the mail autoconfiguration virtualhost
-  command: a2ensite autoconfig.conf
-  args:
-    creates: /etc/apache2/sites-enabled/autoconfig.conf
-  notify: restart apache
+- name: Enable autoconfig site
+  file:
+    src: /etc/nginx/sites-available/autoconfig.conf
+    dest: /etc/nginx/sites-enabled/autoconfig.conf
+    state: link
+  notify:
+    - restart nginx

@@ -35,7 +35,22 @@
     name: rspamd
     state: restarted
 
-- name: restart apache
+- name: reload nginx
   service:
-    name: apache2
+    name: nginx
+    state: reloaded
+
+- name: restart nginx
+  service:
+    name: nginx
     state: restarted
+
+- name: start nginx
+  service:
+    name: nginx
+    state: started
+
+- name: stop nginx
+  service:
+    name: nginx
+    state: stopped
