@@ -1,36 +1,8 @@
-
 ---
 
-- name: Install essentials
-  apt:
-    pkg: "{{ item }}"
-    state: installed
-  with_items:
-    - git
-
-- name: Install MySQL
-  apt:
-    pkg: "{{ item }}"
-    state: installed
-  with_items:
-    - mysql-server
-    - python-mysqldb
+- include: install.yml
   tags:
-    - dependencies
-
-- name: Download LetsEncrypt release
-  git:
-    repo: https://github.com/letsencrypt/letsencrypt
-    dest: /root/letsencrypt
-    version: master
-    force: yes
-
-- name: Create directory for LetsEncrypt configuration and certificates
-  file:
-    state: directory
-    path: /etc/letsencrypt
-    group: root
-    owner: root
+    - build
 
 - name: Configure LetsEncrypt
   template:
@@ -39,51 +11,10 @@
     owner: root
     group: root
 
-- name: Install LetsEncrypt package dependencies
-  command: /root/letsencrypt/letsencrypt-auto --help
-  register: le_deps_result
-  changed_when: "'Bootstrapping dependencies' in le_deps_result.stdout"
-
-- name: Create directory for pre-renewal scripts
-  file:
-    state: directory
-    path: /etc/letsencrypt/prerenew
-    group: root
-    owner: root
-
-- name: Create directory for post-renewal scripts
-  file:
-    state: directory
-    path: /etc/letsencrypt/postrenew
-    group: root
-    owner: root
-
-- name: Install crontab entry for LetsEncrypt
-  copy:
-    src: etc_cron-daily_letsencrypt-renew
-    dest: /etc/cron.daily/letsencrypt-renew
-    owner: root
-    group: root
-    mode: 0755
-
-- name: Create live directory for LetsEncrypt cron job
-  file:
-    state: directory
-    path: /etc/letsencrypt/live
-    group: root
-    owner: root
-
 - name: "Get an SSL certificate for {{ ansible_pdm_mailserver_domain }} from Let's Encrypt"
   script: "letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
   args:
     creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
-  when: ansible_ssh_user != "vagrant"
-
-- name: Modify permissions to allow ssl-cert group access
-  file:
-    path: /etc/letsencrypt/archive
-    owner: root
-    mode: 0750
   when: ansible_ssh_user != "vagrant"
 
 ### Several steps to install a self-signed wildcard key to support offline testing
@@ -136,35 +67,15 @@
     mode: 0644
   when: ansible_ssh_user == "vagrant"
 
-- name: Create strong Diffie-Hellman group
-  command: openssl dhparam -out /etc/ssl/private/dhparam2048.pem 2048
-  args:
-    creates: /etc/ssl/private/dhparam2048.pem
-
-- name: Install necessities and nice-to-haves
-  apt:
-    pkg: "{{ item }}"
-    state: installed
-  with_items:
-    - nginx
-
-- name: Removes default site
-  file:
-    path: "{{ item }}"
-    state: absent
-  with_items:
-    - /etc/nginx/sites-enabled/default
-    - /etc/nginx/sites-available/default
-  notify:
-    - reload nginx
 
 ### Back to normal
 
-- include: postfix.yml tags=postfix
-- include: dovecot.yml tags=dovecot
-- include: opendkim.yml tags=opendkim
-- include: opendmarc.yml tags=opendmarc
-- include: rspamd.yml tags=rspamd
-- include: checkrbl.yml tags=checkrbl
-- include: autoconfig.yml tags=autoconfig
 
+#- include: dovecot.yml tags=dovecot
+#- include: opendkim.yml tags=opendkim
+#- include: opendmarc.yml tags=opendmarc
+#- include: rspamd.yml tags=rspamd
+#- include: checkrbl.yml tags=checkrbl
+#- include: autoconfig.yml tags=autoconfig
+
+- include: configure.yml

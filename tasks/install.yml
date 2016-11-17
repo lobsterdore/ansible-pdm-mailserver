@@ -1,1 +1,300 @@
 ---
+
+- name: Install essentials
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - git
+
+- name: Install MySQL
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - mysql-server
+    - python-mysqldb
+  tags:
+    - dependencies
+
+- name: Download LetsEncrypt release
+  git:
+    repo: https://github.com/letsencrypt/letsencrypt
+    dest: /root/letsencrypt
+    version: master
+    force: yes
+
+- name: Create directory for LetsEncrypt configuration and certificates
+  file:
+    state: directory
+    path: /etc/letsencrypt
+    group: root
+    owner: root
+
+- name: Create directory for pre-renewal scripts
+  file:
+    state: directory
+    path: /etc/letsencrypt/prerenew
+    group: root
+    owner: root
+
+- name: Create directory for post-renewal scripts
+  file:
+    state: directory
+    path: /etc/letsencrypt/postrenew
+    group: root
+    owner: root
+
+- name: Create live directory for LetsEncrypt cron job
+  file:
+    state: directory
+    path: /etc/letsencrypt/live
+    group: root
+    owner: root
+
+- name: Modify permissions to allow ssl-cert group access
+  file:
+    path: /etc/letsencrypt/archive
+    owner: root
+    mode: 0750
+  when: ansible_ssh_user != "vagrant"
+
+- name: Install LetsEncrypt package dependencies
+  command: /root/letsencrypt/letsencrypt-auto --help
+  register: le_deps_result
+  changed_when: "'Bootstrapping dependencies' in le_deps_result.stdout"
+
+- name: Install crontab entry for LetsEncrypt
+  copy:
+    src: etc_cron-daily_letsencrypt-renew
+    dest: /etc/cron.daily/letsencrypt-renew
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create strong Diffie-Hellman group
+  command: openssl dhparam -out /etc/ssl/private/dhparam2048.pem 2048
+  args:
+    creates: /etc/ssl/private/dhparam2048.pem
+
+- name: Install necessities and nice-to-haves
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - nginx
+
+- name: Removes default site
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/nginx/sites-enabled/default
+    - /etc/nginx/sites-available/default
+  notify:
+    - reload nginx
+
+- name: Install Postfix and related packages
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - libsasl2-modules
+    - postfix
+    - postfix-pcre
+    - postfix-mysql
+    - postgrey
+    - python-psycopg2
+    - sasl2-bin
+  tags:
+    - dependencies
+
+- name: Create postfix maps directory
+  file:
+    path: /etc/postfix/maps
+    state: directory
+    owner: root
+    group: root
+  when: ansible_pdm_mailserver_header_privacy == 1
+
+- name: Copy smtp_header_checks.pcre
+  copy:
+    src: etc_postfix_maps_smtp_header_checks.pcre
+    dest: /etc/postfix/maps/smtp_header_checks.pcre
+    owner: root
+    group: root
+  when: ansible_pdm_mailserver_header_privacy == 1
+
+- name: Install Dovecot and related packages
+  apt: pkg={{ item }} update_cache=yes state=installed
+  with_items:
+    - dovecot-core
+    - dovecot-imapd
+    - dovecot-lmtpd
+    - dovecot-managesieved
+    - dovecot-mysql
+    - dovecot-pop3d
+  tags:
+    - dependencies
+
+- name: Create vmail group
+  group:
+    name: vmail
+    state: present
+    gid: 5000
+
+- name: Create vmail user
+  user:
+    name: vmail
+    group: vmail
+    state: present
+    uid: 5000
+    home: /decrypted
+    shell: /usr/sbin/nologin
+
+- name: Copy dovecot.conf into place
+  copy:
+    src: etc_dovecot_dovecot.conf
+    dest: /etc/dovecot/dovecot.conf
+
+- name: Update post-certificate-renewal task
+  copy:
+    content: "#!/bin/bash\n\nservice dovecot restart\n"
+    dest: /etc/letsencrypt/postrenew/dovecot.sh
+    mode: 0755
+    owner: root
+    group: root
+
+
+- name: Install OpenDKIM and related packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - opendkim
+    - opendkim-tools
+  tags:
+    - dependencies
+
+- name: Create OpenDKIM config directory
+  file:
+    state: directory
+    path: /etc/opendkim
+    group: opendkim
+    owner: opendkim
+
+- name: Put opendkim.conf into place
+  copy:
+    src: etc_opendkim.conf
+    dest: /etc/opendkim.conf
+    owner: opendkim
+    group: opendkim
+  notify:
+    - restart opendkim
+    - restart postfix
+
+- name: Install OpenDMARC milter and related packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+    update_cache: yes
+  with_items:
+    - opendmarc
+
+- name: Patch opendmarc scripts (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=742447)
+  lineinfile:
+    dest: "/usr/sbin/{{ item }}"
+    regexp: '^require DBD::'
+    line: 'require DBD::mysql;'
+  with_items:
+    - opendmarc-import
+    - opendmarc-reports
+    - opendmarc-params
+
+- name: Patch opendmarc scripts part deux (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=742447)
+  lineinfile:
+    dest: "/usr/sbin/{{ item }}"
+    regexp: '^my \$dbscheme'
+    line: 'my $dbscheme     = "mysql";'
+  with_items:
+    - opendmarc-reports
+    - opendmarc-import
+
+- name: Create OpenDMARC configuration directory
+  file:
+    state: directory
+    path: /etc/opendmarc
+
+- name: Copy OpenDMARC defaults file into place
+  copy:
+    src: etc_default_opendmarc
+    dest: /etc/default/opendmarc
+    owner: root
+    group: root
+  notify:
+    - restart opendmarc
+    - restart postfix
+
+
+- name: Ensure repository key for Rspamd is in place
+  apt_key:
+    url: https://rspamd.com/apt-stable/gpg.key
+    state: present
+    validate_certs: False
+  tags:
+    - dependencies
+
+- name: Add Rspamd repository
+  apt_repository:
+    repo: "deb http://rspamd.com/apt-stable/ {{ ansible_distribution_release }} main"
+  tags:
+    - dependencies
+
+- name: Install Rspamd, Rmilter, and Redis
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+    update_cache: yes
+  with_items:
+    - rspamd
+    - rmilter
+    - redis-server
+  tags:
+    - dependencies
+
+- name: Configure rmilter
+  copy:
+    src: etc_rmilter.conf.common
+    dest: /etc/rmilter.conf.common
+
+- name: Configure rmilter service
+  copy:
+    src: lib_systemd_system_rmilter.socket
+    dest: /lib/systemd/system/rmilter.socket
+
+- name: Download check-rbl
+  get_url:
+    url: https://raw.github.com/lukecyca/check-rbl/38006028bc1865e9c/check-rbl.pl
+    dest: /opt/check-rbl.pl
+    sha256sum: 59a8e15ee702e8c056426ebdd155fdd7a651716f40c58b7a4fef2a1c312f07da
+
+- name: Install nightly check-rbl cronjob
+  cron:
+    name: "check-rbl"
+    hour: "2"
+    minute: "0"
+    job: "perl /opt/check-rbl.pl -i {{ ansible_default_ipv4.address }}"
+
+
+- name: Create directory for mail autoconfiguration virtualhost
+  file:
+    state: directory
+    path: /var/www/autoconfig
+    group: www-data
+    owner: root
+
+- name: Create directory holding the autoconfig XML file
+  file:
+    state: directory
+    path: /var/www/autoconfig/mail
+    group: www-data
+    owner: root
+

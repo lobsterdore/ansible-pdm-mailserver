@@ -1,1 +1,251 @@
 ---
+
+- name: Create database for mail server
+  mysql_db:
+    login_host: localhost
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    name: "{{ ansible_pdm_mailserver_db_database }}"
+    state: present
+  notify: import sql postfix
+
+- name: Create database user for mail server
+  mysql_user:
+    login_host: localhost
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    name: "{{ ansible_pdm_mailserver_db_username }}"
+    password: "{{ ansible_pdm_mailserver_db_password }}"
+    state: present
+    host: "%"
+    priv: "{{ ansible_pdm_mailserver_db_database }}.*:ALL"
+  notify: import sql postfix
+
+- name: Copy import.sql
+  template:
+    src: mailserver.sql.j2
+    dest: /etc/postfix/import.sql
+    owner: root
+    group: root
+    mode: 0600
+  notify: import sql postfix
+
+- name: Copy main.cf
+  template:
+    src: etc_postfix_main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+  notify: restart postfix
+
+- name: Copy master.cf
+  copy:
+    src: etc_postfix_master.cf
+    dest: /etc/postfix/master.cf
+    owner: root
+    group: root
+  notify: restart postfix
+
+- name: Copy additional postfix configuration files
+  template:
+    src: "etc_postfix_{{ item }}.j2"
+    dest: "/etc/postfix/{{ item }}"
+    owner: root
+    group: root
+  with_items:
+    - mysql-virtual-alias-maps.cf
+    - mysql-virtual-mailbox-domains.cf
+    - mysql-virtual-mailbox-maps.cf
+  notify: restart postfix
+
+
+- name: Ensure mail domain directories are in place
+  file:
+    state: directory
+    path: "/decrypted/{{ item.name }}"
+    owner: vmail
+    group: dovecot
+    mode: 0770
+  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
+
+- name: Ensure mail directories are in place
+  file:
+    state: directory
+    path: "/decrypted/{{ item.domain }}/{{ item.account }}"
+    owner: vmail
+    group: dovecot
+  with_items: "{{ ansible_pdm_mailserver_virtual_users }}"
+
+- name: Copy additional Dovecot configuration files in place
+  copy:
+    src: "etc_dovecot_conf.d_{{ item }}"
+    dest: "/etc/dovecot/conf.d/{{ item }}"
+  with_items:
+    - 10-auth.conf
+    - 10-mail.conf
+    - 10-master.conf
+    - auth-sql.conf.ext
+  notify: restart dovecot
+
+- name: Template 10-ssl.conf
+  template:
+    src: etc_dovecot_conf.d_10-ssl.conf.j2
+    dest: /etc/dovecot/conf.d/10-ssl.conf
+  notify: restart dovecot
+
+- name: Template 15-lda.conf
+  template:
+    src: etc_dovecot_conf.d_15-lda.conf.j2
+    dest: /etc/dovecot/conf.d/15-lda.conf
+  notify: restart dovecot
+
+- name: Template dovecot-sql.conf.ext
+  template:
+    src: etc_dovecot_dovecot-sql.conf.ext.j2
+    dest: /etc/dovecot/dovecot-sql.conf.ext
+  notify: restart dovecot
+
+- name: Ensure correct permissions on Dovecot config directory
+  file:
+    state: directory
+    path: /etc/dovecot
+    group: dovecot
+    owner: vmail
+    mode: 0770
+    recurse: yes
+  notify: restart dovecot
+
+- name: Create OpenDKIM key directories
+  file:
+    state: directory
+    path: "/etc/opendkim/keys/{{ item.name }}"
+    group: opendkim
+    owner: opendkim
+  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
+
+- name: Generate OpenDKIM keys
+  command: "opendkim-genkey -r -d {{ item.name }} -D /etc/opendkim/keys/{{ item.name }}/"
+  args:
+    creates: "/etc/opendkim/keys/{{ item.name }}/default.private"
+  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
+
+- name: Put additional OpenDKIM configuration files into place
+  template:
+    src: "etc_opendkim_{{ item }}.j2"
+    dest: "/etc/opendkim/{{ item }}"
+    owner: opendkim
+    group: opendkim
+  with_items:
+    - KeyTable
+    - SigningTable
+    - TrustedHosts
+  notify:
+    - restart opendkim
+    - restart postfix
+
+- name: Set OpenDKIM config directory permissions
+  file:
+    state: directory
+    path: /etc/opendkim
+    group: opendkim
+    owner: opendkim
+    mode: 0700
+    recurse: yes
+  notify:
+    - restart opendkim
+    - restart postfix
+
+
+- name: Copy OpenDMARC configuration file into place
+  template:
+    src: etc_opendmarc.conf.j2
+    dest: /etc/opendmarc.conf
+    owner: root
+    group: root
+  notify: restart opendmarc
+
+- name: Copy OpenDMARC ignore hosts file into place
+  template:
+    src: etc_opendmarc_ignore.hosts.j2
+    dest: /etc/opendmarc/ignore.hosts
+    owner: root
+    group: root
+
+- name: Create database user for OpenDMARC reports
+  mysql_user:
+    user: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
+    password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
+    state: present
+    priv: "opendmarc.*:ALL"
+
+- name: Create database for OpenDMARC reports
+  mysql_db:
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
+    state: present
+  register: db_created
+
+- name: Import opendmarc schema
+  mysql_db:
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
+    state: import
+    target: /usr/share/doc/opendmarc/schema.mysql
+  when: db_created.changed
+
+- name: Copy nightly OpenDMARC report generation script into place
+  template:
+    src: etc_opendmarc_report.sh.j2
+    dest: /etc/opendmarc/report.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Ensure initial report dat file exists with correct permissions
+  copy:
+    content: ""
+    dest: /var/run/opendmarc/opendmarc.dat
+    owner: opendmarc
+    group: opendmarc
+
+- name: Activate OpenDMARC report cronjob
+  cron:
+    name: "OpenDMARC report"
+    hour: "2"
+    minute: "0"
+    job: "/bin/bash /etc/opendmarc/report.sh >> /var/log/opendmarc_report.log 2>&1 || tail /var/log/opendmarc_report.log"
+
+- name: Start redis
+  service:
+    name: redis-server
+    state: started
+
+- name: Start rspamd systemd listener
+  service:
+    name: rspamd
+    state: started
+
+- name: Start rmilter systemd listener
+  service:
+    name: rmilter
+    state: started
+
+- name: Create the autoconfig XML file
+  template:
+    src: var_www_autoconfig_mail_config-v1.1.j2
+    dest: /var/www/autoconfig/mail/config-v1.1.xml
+    group: www-data
+    owner: root
+
+- name: Create autoconfig site
+  template:
+    src: etc_nginx_autoconfig.conf.j2
+    dest: /etc/nginx/sites-available/autoconfig.conf
+  notify:
+    - restart nginx
+
+- name: Enable autoconfig site
+  file:
+    src: /etc/nginx/sites-available/autoconfig.conf
+    dest: /etc/nginx/sites-enabled/autoconfig.conf
+    state: link
+  notify:
+    - restart nginx
