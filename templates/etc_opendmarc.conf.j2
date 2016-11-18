@@ -12,7 +12,7 @@
 ##  provided, the name of the host running the filter (as returned by the
 ##  gethostname(3) function) will be used.
 #
-AuthservID {{ ansible_pdm_mailserver_server_hostname }}
+AuthservID {{ ansible_pdm_mailserver_hostname }}
 
 ##  AuthservIDWithJobID { true | false }
 ##      default "false"
@@ -338,7 +338,7 @@ Syslog true
 ##  with a comma.  The key word "HOSTNAME" will be replaced by the name of
 ##  the host running the filter as reported by the gethostname(3) function.
 #
-TrustedAuthservIDs {{ ansible_pdm_mailserver_server_hostname }}
+TrustedAuthservIDs {{ ansible_pdm_mailserver_hostname }}
 
 ##  UMask mask
 ##      default (none)

@@ -1,37 +1,26 @@
-ansible_pdm_mailserver_timezone: 'Etc/UTC'
-
-ansible_pdm_mailserver_domain: "local.dave.io"
-ansible_pdm_mailserver_main_user_name: "example"
+---
 
 ansible_pdm_mailserver_admin_email: "{{ ansible_pdm_mailserver_main_user_name }}@{{ ansible_pdm_mailserver_domain }}"
+ansible_pdm_mailserver_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserver_domain }}"
 
+ansible_pdm_mailserver_db_admin_password: ""
+ansible_pdm_mailserver_db_admin_username: "root"
+
+ansible_pdm_mailserver_db_database: "mailserver"
+ansible_pdm_mailserver_db_password: "password"
+ansible_pdm_mailserver_db_username: "mailuser"
+
+ansible_pdm_mailserver_db_opendmarc_database: opendmarc
+ansible_pdm_mailserver_db_opendmarc_password: "password"
+ansible_pdm_mailserver_db_opendmarc_username: opendmarc
+
+ansible_pdm_mailserver_domain: "local.example.io"
 ansible_pdm_mailserver_friendly_networks: [ ]
+ansible_pdm_mailserver_header_privacy: 1
+ansible_pdm_mailserver_hostname: "mail.{{ ansible_pdm_mailserver_domain }}"
 
 ansible_pdm_mailserver_letsencrypt_server: "https://acme-v01.api.letsencrypt.org/directory"
-
-ansible_pdm_mailserver_db_admin_username: "root"
-ansible_pdm_mailserver_db_admin_password: ""
-
-ansible_pdm_mailserver_db_username: "mailuser"
-ansible_pdm_mailserver_db_password: "password"
-ansible_pdm_mailserver_db_database: "mailserver"
-
-ansible_pdm_mailserver_server_hostname: "mail.{{ ansible_pdm_mailserver_domain }}"
-ansible_pdm_mailserver_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserver_domain }}"
-ansible_pdm_mailserver_header_privacy: 1
-
-# mail
-ansible_pdm_mailserver_virtual_domains:
-  - name: "{{ ansible_pdm_mailserver_domain }}"
-    pk_id: 1
-  - name: "local.davereed.io"
-    pk_id: 2
-
-ansible_pdm_mailserver_virtual_users:
-  - account: "{{ ansible_pdm_mailserver_main_user_name }}"
-    domain: "{{ ansible_pdm_mailserver_domain }}"
-    password_hash: "$6$2qWeQLBahbfcmOQJ$RLKAOEWdt2gU8/ltKjRdelj51KvW4QKzAhCasAcHwqDy736nttxbS4qnL9i9O2j66YRRqgXUbJFNndG5BB6mR."
-    domain_pk_id: 1
+ansible_pdm_mailserver_main_user_name: "example"
 
 ansible_pdm_mailserver_virtual_aliases:
   - source: "root@{{ ansible_pdm_mailserver_domain }}"
@@ -47,7 +36,13 @@ ansible_pdm_mailserver_virtual_aliases:
     destination: "{{ ansible_pdm_mailserver_admin_email }}"
     domain_pk_id: 1
 
-# opendmarc
-ansible_pdm_mailserver_db_opendmarc_username: opendmarc
-ansible_pdm_mailserver_db_opendmarc_database: opendmarc
-ansible_pdm_mailserver_db_opendmarc_password: "password"
+ansible_pdm_mailserver_virtual_domains:
+  - name: "{{ ansible_pdm_mailserver_domain }}"
+    pk_id: 1
+
+ansible_pdm_mailserver_virtual_users:
+  - account: "{{ ansible_pdm_mailserver_main_user_name }}"
+    domain: "{{ ansible_pdm_mailserver_domain }}"
+    # Example password "password"
+    password_hash: "$6$2qWeQLBahbfcmOQJ$RLKAOEWdt2gU8/ltKjRdelj51KvW4QKzAhCasAcHwqDy736nttxbS4qnL9i9O2j66YRRqgXUbJFNndG5BB6mR."
+    domain_pk_id: 1

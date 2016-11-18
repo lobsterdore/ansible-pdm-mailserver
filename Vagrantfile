@@ -1,10 +1,15 @@
+required_plugins = %w( vagrant-hostsupdater )
+required_plugins.each do |plugin|
+  exec "vagrant plugin install #{plugin};vagrant #{ARGV.join(" ")}" unless Vagrant.has_plugin? plugin || ARGV[0] == 'plugin'
+end
+
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
 
   config.vm.network :private_network, ip: '192.168.10.90'
 
-  config.vm.hostname = "local.dave.io"
-  config.hostsupdater.aliases = [ "autoconfig.local.dave.io", "local.dave.io", "mail.local.dave.io" ]
+  config.vm.hostname = "local.example.io"
+  config.hostsupdater.aliases = [ "autoconfig.local.example.io", "local.example.io", "mail.local.example.io" ]
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "tests/test.yml"
