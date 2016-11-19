@@ -19,11 +19,21 @@
   mysql_db:
     name: "{{ ansible_pdm_mailserver_db_database }}"
     state: import
-    login_host: localhost
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
     login_user: "{{ ansible_pdm_mailserver_db_username }}"
     login_password: "{{ ansible_pdm_mailserver_db_password }}"
     target: /etc/postfix/import.sql
   notify: restart postfix
+
+- name: import sql opendmarc
+  mysql_db:
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
+    state: import
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
+    login_user: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
+    target: /usr/share/doc/opendmarc/schema.mysql
+  notify: restart opendmarc
 
 - name: restart opendmarc
   service:
@@ -39,18 +49,3 @@
   service:
     name: nginx
     state: reloaded
-
-- name: restart nginx
-  service:
-    name: nginx
-    state: restarted
-
-- name: start nginx
-  service:
-    name: nginx
-    state: started
-
-- name: stop nginx
-  service:
-    name: nginx
-    state: stopped

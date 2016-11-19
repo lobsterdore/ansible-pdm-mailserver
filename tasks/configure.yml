@@ -65,7 +65,7 @@
 
 - name: Create database for mail server
   mysql_db:
-    login_host: localhost
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
     login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
     login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
     name: "{{ ansible_pdm_mailserver_db_database }}"
@@ -74,7 +74,7 @@
 
 - name: Create database user for mail server
   mysql_user:
-    login_host: localhost
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
     login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
     login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
     name: "{{ ansible_pdm_mailserver_db_username }}"
@@ -120,7 +120,6 @@
     - mysql-virtual-mailbox-domains.cf
     - mysql-virtual-mailbox-maps.cf
   notify: restart postfix
-
 
 - name: Ensure mail domain directories are in place
   file:
@@ -178,6 +177,11 @@
     recurse: yes
   notify: restart dovecot
 
+- name: Configure rmilter
+  template:
+    src: etc_rmilter.conf.common.j2
+    dest: /etc/rmilter.conf.common
+
 - name: Create OpenDKIM key directories
   file:
     state: directory
@@ -218,7 +222,6 @@
     - restart opendkim
     - restart postfix
 
-
 - name: Copy OpenDMARC configuration file into place
   template:
     src: etc_opendmarc.conf.j2
@@ -234,25 +237,26 @@
     owner: root
     group: root
 
-- name: Create database user for OpenDMARC reports
-  mysql_user:
-    user: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
-    password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
-    state: present
-    priv: "opendmarc.*:ALL"
-
 - name: Create database for OpenDMARC reports
   mysql_db:
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
     name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
     state: present
-  register: db_created
+  notify: import sql opendmarc
 
-- name: Import opendmarc schema
-  mysql_db:
-    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
-    state: import
-    target: /usr/share/doc/opendmarc/schema.mysql
-  when: db_created.changed
+- name: Create database user for OpenDMARC reports
+  mysql_user:
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
+    password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
+    state: present
+    host: "%"
+    priv: "{{ ansible_pdm_mailserver_db_opendmarc_database }}.*:ALL"
+  notify: import sql opendmarc
 
 - name: Copy nightly OpenDMARC report generation script into place
   template:
@@ -276,10 +280,17 @@
     minute: "0"
     job: "/bin/bash /etc/opendmarc/report.sh >> /var/log/opendmarc_report.log 2>&1 || tail /var/log/opendmarc_report.log"
 
+- name: Start mysql
+  service:
+    name: mysql
+    state: started
+  when: ansible_pdm_mailserver_db_mysql_install
+
 - name: Start redis
   service:
     name: redis-server
     state: started
+  when: ansible_pdm_mailserver_rmilter_redis_install
 
 - name: Start rspamd systemd listener
   service:
@@ -303,7 +314,7 @@
     src: etc_nginx_autoconfig.conf.j2
     dest: /etc/nginx/sites-available/autoconfig.conf
   notify:
-    - restart nginx
+    - reload nginx
 
 - name: Enable autoconfig site
   file:
@@ -311,4 +322,4 @@
     dest: /etc/nginx/sites-enabled/autoconfig.conf
     state: link
   notify:
-    - restart nginx
+    - reload nginx

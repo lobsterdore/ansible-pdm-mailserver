@@ -4,7 +4,7 @@ spamd {
 };
 
 redis {
-	servers_id = localhost;
+	servers_id = {{ ansible_pdm_mailserver_rmilter_redis_host }};
 	id_prefix = "message_id.";
 };
 
