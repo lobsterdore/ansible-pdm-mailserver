@@ -3,10 +3,16 @@
 ansible_pdm_mailserver_admin_email: "{{ ansible_pdm_mailserver_main_user_name }}@{{ ansible_pdm_mailserver_domain }}"
 ansible_pdm_mailserver_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserver_domain }}"
 
+ansible_pdm_mailserver_aws_ec2_elastic_ip: no
+ansible_pdm_mailserver_aws_region: "eu-west-1"
+
+ansible_pdm_mailserver_aws_r53_zone: no
+ansible_pdm_mailserver_aws_r53_record: no
+
 ansible_pdm_mailserver_db_admin_password: ""
 ansible_pdm_mailserver_db_admin_username: "root"
 ansible_pdm_mailserver_db_database: "mailserver"
-ansible_pdm_mailserver_db_host: localhost
+ansible_pdm_mailserver_db_host: 127.0.0.1
 ansible_pdm_mailserver_db_mysql_install: true
 ansible_pdm_mailserver_db_password: "password"
 ansible_pdm_mailserver_db_username: "mailuser"
@@ -24,7 +30,7 @@ ansible_pdm_mailserver_letsencrypt_server: "https://acme-v01.api.letsencrypt.org
 ansible_pdm_mailserver_main_user_name: "example"
 
 ansible_pdm_mailserver_rmilter_redis_install: true
-ansible_pdm_mailserver_rmilter_redis_host: localhost
+ansible_pdm_mailserver_rmilter_redis_host: 127.0.0.1
 
 ansible_pdm_mailserver_virtual_aliases:
   - source: "root@{{ ansible_pdm_mailserver_domain }}"

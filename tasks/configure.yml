@@ -55,7 +55,7 @@
 
 - name: Create a combined SSL cert for testing
   shell: "cat /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/cert.pem /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/chain.pem > /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/fullchain.pem"
-#  when: (private_key.changed or certificate.changed or ca_certificate.changed) and ansible_ssh_user == "vagrant"
+  when: (private_key.changed or certificate.changed or ca_certificate.changed) and ansible_ssh_user == "vagrant"
 
 - name: Set permissions on combined SSL public cert
   file:
@@ -323,3 +323,29 @@
     state: link
   notify:
     - reload nginx
+
+- name: Gather AWS facts
+  action: ec2_facts
+  register: ec2_vars
+  when: ansible_pdm_mailserver_aws_ec2_elastic_ip
+
+- name: Associate Elastic IP
+  ec2_eip:
+    instance_id: "{{ ansible_ec2_instance_id }}"
+    ip: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip }}"
+    region: "{{ansible_pdm_mailserver_aws_region }}"
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_ec2_elastic_ip
+
+- name: Associate R53 record
+  route53:
+    command: create
+    overwrite: yes
+    record: "{{ ansible_pdm_mailserver_aws_r53_record }}"
+    ttl: 0
+    type: A
+    value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip }}"
+    zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_r53_record
+    and ansible_pdm_mailserver_aws_r53_zone
