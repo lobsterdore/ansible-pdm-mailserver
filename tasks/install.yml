@@ -93,6 +93,7 @@
     path: /etc/letsencrypt/archive
     owner: root
     mode: 0750
+    state: directory
   when: ansible_ssh_user != "vagrant"
 
 - name: Install LetsEncrypt package dependencies
