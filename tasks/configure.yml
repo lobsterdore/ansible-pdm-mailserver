@@ -328,6 +328,7 @@
   action: ec2_facts
   register: ec2_vars
   when: ansible_pdm_mailserver_aws_ec2_elastic_ip
+    or ansible_pdm_mailserver_aws_r53_record
 
 - name: Associate Elastic IP
   ec2_eip:
@@ -344,7 +345,7 @@
     record: "{{ ansible_pdm_mailserver_aws_r53_record }}"
     ttl: 0
     type: A
-    value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip }}"
+    value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_r53_record
