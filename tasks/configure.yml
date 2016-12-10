@@ -347,6 +347,10 @@
     type: A
     value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
+  with_items:
+    - "{{ ansible_pdm_mailserver_aws_r53_record }}"
+    - "autoconfig.{{ ansible_pdm_mailserver_aws_r53_record }}"
+    - "mail.{{ ansible_pdm_mailserver_aws_r53_record }}"
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_r53_record
     and ansible_pdm_mailserver_aws_r53_zone

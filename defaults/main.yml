@@ -21,10 +21,9 @@ ansible_pdm_mailserver_db_opendmarc_database: opendmarc
 ansible_pdm_mailserver_db_opendmarc_password: "password"
 ansible_pdm_mailserver_db_opendmarc_username: opendmarc
 
-ansible_pdm_mailserver_domain: "local.example.io"
+ansible_pdm_mailserver_domain: "mail.local.example.io"
 ansible_pdm_mailserver_friendly_networks: [ ]
 ansible_pdm_mailserver_header_privacy: 1
-ansible_pdm_mailserver_hostname: "mail.{{ ansible_pdm_mailserver_domain }}"
 
 ansible_pdm_mailserver_letsencrypt_server: "https://acme-v01.api.letsencrypt.org/directory"
 ansible_pdm_mailserver_main_user_name: "example"

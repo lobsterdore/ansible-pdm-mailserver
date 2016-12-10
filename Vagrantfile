@@ -8,8 +8,8 @@ Vagrant.configure(2) do |config|
 
   config.vm.network :private_network, ip: '192.168.10.90'
 
-  config.vm.hostname = "local.example.io"
-  config.hostsupdater.aliases = [ "autoconfig.local.example.io", "local.example.io", "mail.local.example.io" ]
+  config.vm.hostname = "mail.local.example.io"
+  config.hostsupdater.aliases = [ "autoconfig.mail.local.example.io" ]
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "tests/test.yml"
