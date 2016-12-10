@@ -53,11 +53,11 @@
     - redis-server
   when: ansible_pdm_mailserver_rmilter_redis_install
 
-- name: Download LetsEncrypt release
+- name: Download stable LetsEncrypt release
   git:
-    repo: https://github.com/letsencrypt/letsencrypt
+    repo: https://github.com/certbot/certbot
     dest: /root/letsencrypt
-    version: master
+    version: v0.9.3
     force: yes
 
 - name: Create directory for LetsEncrypt configuration and certificates
@@ -100,6 +100,14 @@
   command: /root/letsencrypt/letsencrypt-auto --help
   register: le_deps_result
   changed_when: "'Bootstrapping dependencies' in le_deps_result.stdout"
+
+- name: Install generate script for LetsEncrypt
+  copy:
+    src: letsencrypt-gencert
+    dest: /etc/letsencrypt/letsencrypt-gencert
+    owner: root
+    group: root
+    mode: 0755
 
 - name: Install crontab entry for LetsEncrypt
   copy:
