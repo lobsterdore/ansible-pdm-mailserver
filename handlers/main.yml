@@ -30,8 +30,8 @@
     name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
     state: import
     login_host: "{{ ansible_pdm_mailserver_db_host }}"
-    login_user: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
-    login_password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
+    login_user: "{{ ansible_pdm_mailserver_db_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_password }}"
     target: /usr/share/doc/opendmarc/schema.mysql
   notify: restart opendmarc
 

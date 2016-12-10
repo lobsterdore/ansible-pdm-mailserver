@@ -251,8 +251,8 @@
     login_host: "{{ ansible_pdm_mailserver_db_host }}"
     login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
     login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
-    name: "{{ ansible_pdm_mailserver_db_opendmarc_username }}"
-    password: "{{ ansible_pdm_mailserver_db_opendmarc_password }}"
+    name: "{{ ansible_pdm_mailserver_db_username }}"
+    password: "{{ ansible_pdm_mailserver_db_password }}"
     state: present
     host: "%"
     priv: "{{ ansible_pdm_mailserver_db_opendmarc_database }}.*:ALL"
@@ -350,7 +350,6 @@
   with_items:
     - "{{ ansible_pdm_mailserver_aws_r53_record }}"
     - "autoconfig.{{ ansible_pdm_mailserver_aws_r53_record }}"
-    - "mail.{{ ansible_pdm_mailserver_aws_r53_record }}"
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_r53_record
     and ansible_pdm_mailserver_aws_r53_zone

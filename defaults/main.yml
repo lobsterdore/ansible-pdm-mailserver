@@ -18,8 +18,6 @@ ansible_pdm_mailserver_db_password: "password"
 ansible_pdm_mailserver_db_username: "mailuser"
 
 ansible_pdm_mailserver_db_opendmarc_database: opendmarc
-ansible_pdm_mailserver_db_opendmarc_password: "password"
-ansible_pdm_mailserver_db_opendmarc_username: opendmarc
 
 ansible_pdm_mailserver_domain: "mail.local.example.io"
 ansible_pdm_mailserver_friendly_networks: [ ]
