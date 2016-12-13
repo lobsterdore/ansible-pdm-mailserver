@@ -7,7 +7,7 @@
     login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
     name: "{{ ansible_pdm_mailserver_db_database }}"
     state: present
-  notify: import sql postfix
+  register: ansible_pdm_mailserver_db_created
 
 - name: Create database user for mail server
   mysql_user:
@@ -20,7 +20,6 @@
     state: present
     host: "%"
     priv: "{{ ansible_pdm_mailserver_db_database }}.*:ALL"
-  notify: import sql postfix
 
 - name: Copy import.sql
   template:
@@ -29,7 +28,17 @@
     owner: root
     group: root
     mode: 0600
-  notify: import sql postfix
+
+- name: Import sql postfix
+  mysql_db:
+    name: "{{ ansible_pdm_mailserver_db_database }}"
+    state: import
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
+    login_user: "{{ ansible_pdm_mailserver_db_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_password }}"
+    target: /etc/postfix/import.sql
+  notify: restart postfix
+  when: ansible_pdm_mailserver_db_created.changed
 
 - name: Copy main.cf
   template:
@@ -182,7 +191,7 @@
     login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
     name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
     state: present
-  notify: import sql opendmarc
+  register: ansible_pdm_mailserver_db_opendmarc_created
 
 - name: Create database user for OpenDMARC reports
   mysql_user:
@@ -195,7 +204,17 @@
     state: present
     host: "%"
     priv: "{{ ansible_pdm_mailserver_db_opendmarc_database }}.*:ALL"
-  notify: import sql opendmarc
+
+- name: Import sql opendmarc
+  mysql_db:
+    name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
+    state: import
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
+    login_user: "{{ ansible_pdm_mailserver_db_username }}"
+    login_password: "{{ ansible_pdm_mailserver_db_password }}"
+    target: /usr/share/doc/opendmarc/schema.mysql
+  notify: restart opendmarc
+  when: ansible_pdm_mailserver_db_opendmarc_created.changed
 
 - name: Copy nightly OpenDMARC report generation script into place
   template:
@@ -352,14 +371,24 @@
     state: started
   when: ansible_pdm_mailserver_rmilter_redis_install
 
-- name: Start rspamd systemd listener
+- name: Start rspamd
   service:
     name: rspamd
     state: started
 
-- name: Start rmilter systemd listener
+- name: Start rmilter
   service:
     name: rmilter
+    state: started
+
+- name: Start opendmarc
+  service:
+    name: opendmarc
+    state: started
+
+- name: Start opendkim
+  service:
+    name: opendkim
     state: started
 
 - name: Start postfix
