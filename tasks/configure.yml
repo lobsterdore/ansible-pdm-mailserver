@@ -205,6 +205,14 @@
     host: "%"
     priv: "{{ ansible_pdm_mailserver_db_opendmarc_database }}.*:ALL"
 
+- name: Copy opendmarc.sql
+  template:
+    src: opendmarc.sql.j2
+    dest: /usr/share/doc/opendmarc/import.sql
+    owner: root
+    group: root
+    mode: 0600
+
 - name: Import sql opendmarc
   mysql_db:
     name: "{{ ansible_pdm_mailserver_db_opendmarc_database }}"
@@ -212,7 +220,7 @@
     login_host: "{{ ansible_pdm_mailserver_db_host }}"
     login_user: "{{ ansible_pdm_mailserver_db_username }}"
     login_password: "{{ ansible_pdm_mailserver_db_password }}"
-    target: /usr/share/doc/opendmarc/schema.mysql
+    target: /usr/share/doc/opendmarc/import.sql
   notify: restart opendmarc
   when: ansible_pdm_mailserver_db_opendmarc_created.changed
 
