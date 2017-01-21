@@ -25,6 +25,7 @@
     - postfix-mysql
     - postgrey
     - sasl2-bin
+    - mysql-client
     - dovecot-core
     - dovecot-imapd
     - dovecot-lmtpd
