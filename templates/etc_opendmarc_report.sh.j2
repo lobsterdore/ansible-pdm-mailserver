@@ -3,7 +3,7 @@
 # ensure this script errors out if any of its steps do
 set -e
 
-DB_SERVER='"{{ ansible_pdm_mailserver_db_host }}"'
+DB_SERVER='{{ ansible_pdm_mailserver_db_host }}'
 DB_USER='{{ ansible_pdm_mailserver_db_username }}'
 DB_PASS='{{ ansible_pdm_mailserver_db_password }}'
 DB_NAME='{{ ansible_pdm_mailserver_db_opendmarc_database }}'
