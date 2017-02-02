@@ -6,8 +6,9 @@ ansible_pdm_mailserver_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserve
 ansible_pdm_mailserver_aws_ec2_elastic_ip: no
 ansible_pdm_mailserver_aws_region: "eu-west-1"
 
+ansible_pdm_mailserver_aws_r53_mail_server_domain: no
+ansible_pdm_mailserver_aws_r53_mx_domain: no
 ansible_pdm_mailserver_aws_r53_zone: no
-ansible_pdm_mailserver_aws_r53_record: no
 
 ansible_pdm_mailserver_db_admin_password: ""
 ansible_pdm_mailserver_db_admin_username: "root"

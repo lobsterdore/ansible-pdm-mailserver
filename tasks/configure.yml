@@ -271,8 +271,6 @@
 - name: Gather AWS facts
   action: ec2_facts
   register: ec2_vars
-  when: ansible_pdm_mailserver_aws_ec2_elastic_ip
-    or ansible_pdm_mailserver_aws_r53_record
 
 - name: Associate Elastic IP
   ec2_eip:
@@ -282,20 +280,39 @@
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_ec2_elastic_ip
 
-- name: Associate R53 record
+- name: testing
+  debug:
+    msg: "{{ ansible_ec2_instance_id }} {{ ansible_pdm_mailserver_aws_r53_mail_server_domain }} {{ ansible_pdm_mailserver_aws_r53_mx_domain }} {{ ansible_pdm_mailserver_aws_r53_zone }}"
+
+- name: Associate R53 A records
   route53:
     command: create
     overwrite: yes
     record: "{{ item }}"
-    ttl: 0
+    ttl: 60
     type: A
     value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   with_items:
-    - "{{ ansible_pdm_mailserver_aws_r53_record }}"
-    - "autoconfig.{{ ansible_pdm_mailserver_aws_r53_record }}"
+    - "{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    - "autoconfig.{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_record
+    and ansible_pdm_mailserver_aws_r53_mail_server_domain
+    and ansible_pdm_mailserver_aws_r53_mx_domain
+    and ansible_pdm_mailserver_aws_r53_zone
+
+- name: Associate R53 MX record
+  route53:
+    command: create
+    overwrite: yes
+    record: "{{ ansible_pdm_mailserver_aws_r53_mx_domain }}"
+    ttl: 60
+    type: MX
+    value: "10 {{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_r53_mail_server_domain
+    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 ### Generate certs
