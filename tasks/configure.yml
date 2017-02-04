@@ -126,8 +126,10 @@
 
 - name: Configure rmilter
   template:
-    src: etc_rmilter.conf.common.j2
-    dest: /etc/rmilter.conf.common
+    mode: 0664
+    src: etc_rmilter_conf_local.j2
+    dest: /etc/rmilter.conf.local
+  notify: restart rmilter
 
 - name: Create OpenDKIM key directories
   file:
@@ -280,16 +282,12 @@
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_ec2_elastic_ip
 
-- name: testing
-  debug:
-    msg: "{{ ansible_ec2_instance_id }} {{ ansible_pdm_mailserver_aws_r53_mail_server_domain }} {{ ansible_pdm_mailserver_aws_r53_mx_domain }} {{ ansible_pdm_mailserver_aws_r53_zone }}"
-
 - name: Associate R53 A records
   route53:
     command: create
     overwrite: yes
     record: "{{ item }}"
-    ttl: 60
+    ttl: 0
     type: A
     value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
@@ -306,7 +304,7 @@
     command: create
     overwrite: yes
     record: "{{ ansible_pdm_mailserver_aws_r53_mx_domain }}"
-    ttl: 60
+    ttl: 0
     type: MX
     value: "10 {{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"

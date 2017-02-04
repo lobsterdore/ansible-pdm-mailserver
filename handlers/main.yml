@@ -20,6 +20,11 @@
     name: opendmarc
     state: restarted
 
+- name: restart rmilter
+  service:
+    name: rmilter
+    state: restarted
+
 - name: restart rspamd
   service:
     name: rspamd
