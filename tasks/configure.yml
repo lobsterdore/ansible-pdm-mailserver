@@ -276,7 +276,7 @@
 
 - name: Associate Elastic IP
   ec2_eip:
-    instance_id: "{{ ansible_ec2_instance_id }}"
+    device_id: "{{ ansible_ec2_instance_id }}"
     ip: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip }}"
     region: "{{ansible_pdm_mailserver_aws_region }}"
   when: ansible_ec2_instance_id is defined
@@ -312,6 +312,20 @@
     and ansible_pdm_mailserver_aws_r53_mail_server_domain
     and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
+
+- name: Pause for Eip and DNS
+  pause:
+    seconds: 30
+  when: ansible_ec2_instance_id is defined
+    and
+    (
+      (
+        ansible_pdm_mailserver_aws_r53_mail_server_domain
+        and ansible_pdm_mailserver_aws_r53_mx_domain
+        and ansible_pdm_mailserver_aws_r53_zone
+      )
+      or ansible_pdm_mailserver_aws_ec2_elastic_ip
+    )
 
 ### Generate certs
 
