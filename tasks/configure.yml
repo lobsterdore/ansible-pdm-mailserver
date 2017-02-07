@@ -299,6 +299,34 @@
     and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
+- name: Associate R53 SPF record
+  route53:
+    command: create
+    overwrite: yes
+    record: "{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    ttl: 0
+    type: TXT
+    value: "\"v=spf1 ip4:{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }} -all\""
+    zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_r53_mail_server_domain
+    and ansible_pdm_mailserver_aws_r53_mx_domain
+    and ansible_pdm_mailserver_aws_r53_zone
+
+- name: Associate R53 Dmarc record
+  route53:
+    command: create
+    overwrite: yes
+    record: "_dmarc.{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    ttl: 0
+    type: TXT
+    value: "\"v=DMARC1; p=none\""
+    zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_r53_mail_server_domain
+    and ansible_pdm_mailserver_aws_r53_mx_domain
+    and ansible_pdm_mailserver_aws_r53_zone
+
 - name: Associate R53 MX record
   route53:
     command: create
