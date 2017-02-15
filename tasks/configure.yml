@@ -327,6 +327,24 @@
     and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
+- name: Grab dkim public key
+  shell: "cat /etc/opendkim/keys/{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}/default.txt | tr '\n' ' ' |  tr '\t' ' ' | grep -oE '\"v=.*\" '"
+  register: dkim_public_key_data
+
+- name: Associate R53 OpenDkim record
+  route53:
+    command: create
+    overwrite: yes
+    record: "default._domainkey.{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    ttl: 0
+    type: TXT
+    value: "{{ dkim_public_key_data.stdout }}"
+    zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_r53_mail_server_domain
+    and ansible_pdm_mailserver_aws_r53_mx_domain
+    and ansible_pdm_mailserver_aws_r53_zone
+
 - name: Associate R53 MX record
   route53:
     command: create
@@ -343,7 +361,7 @@
 
 - name: Pause for Eip and DNS
   pause:
-    seconds: 30
+    seconds: 60
   when: ansible_ec2_instance_id is defined
     and
     (
