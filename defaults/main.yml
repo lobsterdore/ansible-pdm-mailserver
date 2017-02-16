@@ -10,6 +10,8 @@ ansible_pdm_mailserver_aws_r53_mail_server_domain: no
 ansible_pdm_mailserver_aws_r53_mx_domain: no
 ansible_pdm_mailserver_aws_r53_zone: no
 
+ansible_pdm_mailserver_aws_s3_backup_bucket: ~
+
 ansible_pdm_mailserver_db_admin_password: ""
 ansible_pdm_mailserver_db_admin_username: "root"
 ansible_pdm_mailserver_db_database: "mailserver"

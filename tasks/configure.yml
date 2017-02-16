@@ -274,6 +274,29 @@
   action: ec2_facts
   register: ec2_vars
 
+- name: Ensures S3 backup and restore scripts
+  become: yes
+  template:
+    dest: "{{ item.dest }}"
+    mode: 0750
+    src: "{{ item.src }}"
+  with_items:
+    - src: aws_s3_dovecot_backup.j2
+      dest: /usr/local/bin/aws_s3_dovecot_backup
+    - src: aws_s3_dovecot_restore.j2
+      dest: /usr/local/bin/aws_s3_dovecot_restore
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_s3_backup_bucket
+
+- name: Ensures S3 backup cron job
+  become: yes
+  cron:
+    hour: "*"
+    job: "PATH=$PATH /usr/local/bin/aws_s3_dovecot_backup > /var/log/aws_s3_dovecot_backup.log 2>&1"
+    name: Backup dovecot
+    minute: 0
+    weekday: 1-7
+
 - name: Associate Elastic IP
   ec2_eip:
     device_id: "{{ ansible_ec2_instance_id }}"
