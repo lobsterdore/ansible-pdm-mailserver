@@ -29,6 +29,8 @@ ansible_pdm_mailserver_header_privacy: 1
 ansible_pdm_mailserver_letsencrypt_server: "https://acme-v01.api.letsencrypt.org/directory"
 ansible_pdm_mailserver_main_user_name: "example"
 
+ansible_pdm_mailserver_mail_dir: /var/mail/vhosts
+
 ansible_pdm_mailserver_rmilter_redis_install: true
 ansible_pdm_mailserver_rmilter_redis_host: 127.0.0.1
 

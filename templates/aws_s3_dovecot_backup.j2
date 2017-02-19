@@ -14,7 +14,7 @@ function main {
         local maildir
         local backup_bucket
 
-        maildir="/decrypted"
+        maildir="{{ ansible_pdm_mailserver_mail_dir }}"
         backup_bucket="s3://{{ ansible_pdm_mailserver_aws_s3_backup_bucket }}"
 
         service dovecot stop

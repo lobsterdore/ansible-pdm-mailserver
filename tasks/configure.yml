@@ -71,7 +71,7 @@
 - name: Ensure mail domain directories are in place
   file:
     state: directory
-    path: "/decrypted/{{ item.name }}"
+    path: "{{ ansible_pdm_mailserver_mail_dir }}/{{ item.name }}"
     owner: vmail
     group: dovecot
     mode: 0770
@@ -80,7 +80,7 @@
 - name: Ensure mail directories are in place
   file:
     state: directory
-    path: "/decrypted/{{ item.domain }}/{{ item.account }}"
+    path: "{{ ansible_pdm_mailserver_mail_dir }}/{{ item.domain }}/{{ item.account }}"
     owner: vmail
     group: dovecot
   with_items: "{{ ansible_pdm_mailserver_virtual_users }}"
@@ -91,9 +91,19 @@
     dest: "/etc/dovecot/conf.d/{{ item }}"
   with_items:
     - 10-auth.conf
-    - 10-mail.conf
     - 10-master.conf
-    - auth-sql.conf.ext
+  notify: restart dovecot
+
+- name: Template auth-sql.conf.ext
+  template:
+    src: etc_dovecot_conf.d_auth-sql.conf.ext.j2
+    dest: /etc/dovecot/conf.d/auth-sql.conf.ext
+  notify: restart dovecot
+
+- name: Template 10-mail.conf
+  template:
+    src: etc_dovecot_conf.d_10-mail.conf.j2
+    dest: /etc/dovecot/conf.d/10-mail.conf
   notify: restart dovecot
 
 - name: Template 10-ssl.conf
