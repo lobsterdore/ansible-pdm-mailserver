@@ -27,7 +27,7 @@ function main {
                 || die "Failed to synchronise mail"
         ok "Mail synchronised"
 
-        chown -R vmail:dovecot ${maildir}
+        chown -R vmail:vmail ${maildir}
 
         service dovecot start
 

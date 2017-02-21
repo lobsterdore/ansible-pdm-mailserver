@@ -19,6 +19,9 @@ function main {
 
         service dovecot stop
 
+        info "Ensuring there are no empty folders"
+        sudo -u vmail bash -c 'find . -type d -empty -exec touch {}/.s3keep \;'
+
         info "Starting backup"
         aws s3 sync \
                 --delete \

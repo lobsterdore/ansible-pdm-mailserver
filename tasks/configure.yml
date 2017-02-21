@@ -296,7 +296,6 @@
 
 - name: Ensures S3 backup and restore scripts
   become: yes
-  become_user: vmail
   template:
     dest: "{{ item.dest }}"
     mode: 0750
