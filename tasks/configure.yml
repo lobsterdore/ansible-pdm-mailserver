@@ -68,6 +68,15 @@
     - mysql-virtual-mailbox-maps.cf
   notify: restart postfix
 
+- name: Ensure maildir is in place
+  file:
+    state: directory
+    path: "{{ ansible_pdm_mailserver_mail_dir }}"
+    owner: vmail
+    group: dovecot
+    mode: 0770
+  register: ansible_pdm_mailserver_mail_dir_created
+
 - name: Ensure mail domain directories are in place
   file:
     state: directory
@@ -77,12 +86,13 @@
     mode: 0770
   with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
 
-- name: Ensure mail directories are in place
+- name: Ensure mail user directories are in place
   file:
     state: directory
     path: "{{ ansible_pdm_mailserver_mail_dir }}/{{ item.domain }}/{{ item.account }}"
     owner: vmail
     group: dovecot
+    mode: 0770
   with_items: "{{ ansible_pdm_mailserver_virtual_users }}"
 
 - name: Copy additional Dovecot configuration files in place
@@ -286,6 +296,7 @@
 
 - name: Ensures S3 backup and restore scripts
   become: yes
+  become_user: vmail
   template:
     dest: "{{ item.dest }}"
     mode: 0750
@@ -503,3 +514,10 @@
   service:
     name: dovecot
     state: started
+
+- name: Restore mail from s3
+  become: yes
+  command: /usr/local/bin/aws_s3_dovecot_restore
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_s3_backup_bucket
+    and ansible_pdm_mailserver_mail_dir_created.changed
