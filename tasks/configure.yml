@@ -1,5 +1,12 @@
 ---
 
+- name: Ensure local hostnames
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    line: "127.0.0.1 localhost {{ ansible_hostname }} {{ ansible_pdm_mailserver_domain }}"
+    regexp: ^127\.0\.0\.1
+
 - name: Create database for mail server
   mysql_db:
     login_host: "{{ ansible_pdm_mailserver_db_host }}"
@@ -73,7 +80,7 @@
     state: directory
     path: "{{ ansible_pdm_mailserver_mail_dir }}"
     owner: vmail
-    group: dovecot
+    group: vmail
     mode: 0770
   register: ansible_pdm_mailserver_mail_dir_created
 
@@ -82,7 +89,7 @@
     state: directory
     path: "{{ ansible_pdm_mailserver_mail_dir }}/{{ item.name }}"
     owner: vmail
-    group: dovecot
+    group: vmail
     mode: 0770
   with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
 
@@ -91,7 +98,7 @@
     state: directory
     path: "{{ ansible_pdm_mailserver_mail_dir }}/{{ item.domain }}/{{ item.account }}"
     owner: vmail
-    group: dovecot
+    group: vmail
     mode: 0770
   with_items: "{{ ansible_pdm_mailserver_virtual_users }}"
 
