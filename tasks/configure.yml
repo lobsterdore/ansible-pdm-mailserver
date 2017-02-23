@@ -324,6 +324,13 @@
     minute: 0
     weekday: 1-7
 
+- name: Restore mail from s3
+  become: yes
+  command: /usr/local/bin/aws_s3_dovecot_restore
+  when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_s3_backup_bucket
+    and ansible_pdm_mailserver_mail_dir_created.changed
+
 - name: Associate Elastic IP
   ec2_eip:
     device_id: "{{ ansible_ec2_instance_id }}"
@@ -520,10 +527,3 @@
   service:
     name: dovecot
     state: started
-
-- name: Restore mail from s3
-  become: yes
-  command: /usr/local/bin/aws_s3_dovecot_restore
-  when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_s3_backup_bucket
-    and ansible_pdm_mailserver_mail_dir_created.changed
