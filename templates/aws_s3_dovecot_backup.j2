@@ -17,10 +17,17 @@ function main {
         maildir="{{ ansible_pdm_mailserver_mail_dir }}"
         backup_bucket="s3://{{ ansible_pdm_mailserver_aws_s3_backup_bucket }}"
 
+        set +e
         service dovecot stop
+        set -e
 
         info "Ensuring there are no empty folders"
-        sudo -u vmail bash -c 'find . -type d -empty -exec touch {}/.s3keep \;'
+        sudo -u vmail \
+                bash -c \
+                        'find '"${maildir}"' \
+                        -type d \
+                        -empty \
+                        -exec touch {}/.s3keep \;'
 
         info "Starting backup"
         aws s3 sync \
