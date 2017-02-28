@@ -19,7 +19,6 @@ function main {
 
         set +e
         service dovecot stop
-        set -e
 
         info "Ensuring there are no empty folders"
         sudo -u vmail \
@@ -28,6 +27,7 @@ function main {
                         -type d \
                         -empty \
                         -exec touch {}/.s3keep \;'
+        set -e
 
         info "Starting backup"
         aws s3 sync \
