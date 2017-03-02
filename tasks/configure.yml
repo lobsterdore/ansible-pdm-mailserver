@@ -179,12 +179,16 @@
     group: opendkim
     owner: opendkim
   with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
+  when: not ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys
+    or not ansible_pdm_mailserver_aws_s3_backup_bucket
 
 - name: Generate OpenDKIM keys
   command: "opendkim-genkey -r -d {{ item.name }} -D /etc/opendkim/keys/{{ item.name }}/"
   args:
     creates: "/etc/opendkim/keys/{{ item.name }}/default.private"
   with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
+  when: not ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys
+    or not ansible_pdm_mailserver_aws_s3_backup_bucket
 
 - name: Put additional OpenDKIM configuration files into place
   template:
@@ -196,6 +200,22 @@
     - KeyTable
     - SigningTable
     - TrustedHosts
+  notify:
+    - restart opendkim
+    - restart postfix
+  when: not ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys
+    or not ansible_pdm_mailserver_aws_s3_backup_bucket
+
+- name: Retrieve OpenDKIM keys from S3
+  command: >
+    aws s3 sync \
+      --region {{ gocd_agent.aws.region }} \
+      s3://{{ ansible_pdm_mailserver_aws_s3_backup_bucket }}/opendkim \
+      /etc/opendkim/
+  args:
+    creates: /etc/opendkim/KeyTable
+  when: ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys
+    and ansible_pdm_mailserver_aws_s3_backup_bucket
   notify:
     - restart opendkim
     - restart postfix

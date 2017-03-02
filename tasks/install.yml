@@ -37,6 +37,11 @@
     - opendmarc
     - git
     - python-mysqldb
+    - python-pip
+
+- name: Install AWS CLI
+  pip:
+    name: awscli
 
 - name: Install MySQL
   apt:
