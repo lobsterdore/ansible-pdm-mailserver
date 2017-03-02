@@ -158,6 +158,20 @@
     dest: /etc/rmilter.conf.local
   notify: restart rmilter
 
+- name: Configure rmilter redis settings
+  template:
+    mode: 0664
+    src: etc_rmilter_conf_d_rmilter.redis.conf.j2
+    dest: /etc/rmilter.conf.d/rmilter.redis.conf
+  notify: restart rmilter
+
+- name: Configure rspamd redis settings
+  template:
+    mode: 0664
+    src: etc_rspamd_local.d_redis.conf.j2
+    dest: /etc/rspamd/local.d/redis.conf
+  notify: restart rspamd
+
 - name: Create OpenDKIM key directories
   file:
     state: directory

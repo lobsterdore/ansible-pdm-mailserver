@@ -32,7 +32,8 @@ ansible_pdm_mailserver_main_user_name: "example"
 ansible_pdm_mailserver_mail_dir: /var/mail/vhosts
 
 ansible_pdm_mailserver_rmilter_redis_install: true
-ansible_pdm_mailserver_rmilter_redis_host: 127.0.0.1
+ansible_pdm_mailserver_redis_host: 127.0.0.1
+ansible_pdm_mailserver_redis_port: 6379
 
 ansible_pdm_mailserver_virtual_aliases:
   - source: "root@{{ ansible_pdm_mailserver_domain }}"
