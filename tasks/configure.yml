@@ -209,7 +209,7 @@
 - name: Retrieve OpenDKIM keys from S3
   command: >
     aws s3 sync \
-      --region {{ gocd_agent.aws.region }} \
+      --region {{ ansible_pdm_mailserver_aws_region }} \
       s3://{{ ansible_pdm_mailserver_aws_s3_backup_bucket }}/opendkim \
       /etc/opendkim/
   args:
