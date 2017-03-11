@@ -368,6 +368,7 @@
     device_id: "{{ ansible_ec2_instance_id }}"
     ip: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip }}"
     region: "{{ansible_pdm_mailserver_aws_region }}"
+  register: ansible_pdm_mailserver_aws_ec2_elastic_ip_data
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_ec2_elastic_ip
 
@@ -376,7 +377,7 @@
     command: create
     overwrite: yes
     record: "{{ item }}"
-    ttl: 0
+    ttl: 30
     type: A
     value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
@@ -391,7 +392,7 @@
     command: create
     overwrite: yes
     record: "{{ ansible_pdm_mailserver_domain }}"
-    ttl: 0
+    ttl: 30
     type: TXT
     value: "\"v=spf1 ip4:{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }} -all\""
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
@@ -403,7 +404,7 @@
     command: create
     overwrite: yes
     record: "_dmarc.{{ ansible_pdm_mailserver_domain }}"
-    ttl: 0
+    ttl: 30
     type: TXT
     value: "\"v=DMARC1; p=none\""
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
@@ -421,7 +422,7 @@
     command: create
     overwrite: yes
     record: "default._domainkey.{{ ansible_pdm_mailserver_domain }}"
-    ttl: 0
+    ttl: 30
     type: TXT
     value: "{{ dkim_public_key_data.stdout }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
@@ -433,7 +434,7 @@
     command: create
     overwrite: yes
     record: "{{ ansible_pdm_mailserver_domain }}"
-    ttl: 0
+    ttl: 30
     type: MX
     value: "10 {{ ansible_pdm_mailserver_server_hostname }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
@@ -444,11 +445,7 @@
   pause:
     seconds: 60
   when: ansible_ec2_instance_id is defined
-    and
-    (
-      ansible_pdm_mailserver_aws_r53_zone
-      or ansible_pdm_mailserver_aws_ec2_elastic_ip
-    )
+    and ansible_pdm_mailserver_aws_ec2_elastic_ip_data.chagned
 
 ### Generate certs
 
