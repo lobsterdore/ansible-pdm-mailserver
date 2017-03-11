@@ -13,8 +13,8 @@ server {
     listen              443 ssl;
     server_name         {{ ansible_pdm_mailserver_autoconfig_hostname }};
 
-    ssl_certificate     /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/{{ ansible_pdm_mailserver_autoconfig_hostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ ansible_pdm_mailserver_autoconfig_hostname }}/privkey.pem;
     ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 

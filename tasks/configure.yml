@@ -4,7 +4,7 @@
   become: yes
   lineinfile:
     dest: /etc/hosts
-    line: "127.0.0.1 localhost {{ ansible_hostname }} {{ ansible_pdm_mailserver_domain }}"
+    line: "127.0.0.1 localhost {{ ansible_hostname }} {{ ansible_pdm_mailserver_server_hostname }}"
     regexp: ^127\.0\.0\.1
 
 - name: Create database for mail server
@@ -175,18 +175,16 @@
 - name: Create OpenDKIM key directories
   file:
     state: directory
-    path: "/etc/opendkim/keys/{{ item.name }}"
+    path: "/etc/opendkim/keys/{{ ansible_pdm_mailserver_domain }}"
     group: opendkim
     owner: opendkim
-  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
   when: not ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys
     or not ansible_pdm_mailserver_aws_s3_backup_bucket
 
 - name: Generate OpenDKIM keys
-  command: "opendkim-genkey -r -d {{ item.name }} -D /etc/opendkim/keys/{{ item.name }}/"
+  command: "opendkim-genkey -r -d {{ ansible_pdm_mailserver_domain }} -D /etc/opendkim/keys/{{ ansible_pdm_mailserver_domain }}/"
   args:
-    creates: "/etc/opendkim/keys/{{ item.name }}/default.private"
-  with_items: "{{ ansible_pdm_mailserver_virtual_domains }}"
+    creates: "/etc/opendkim/keys/{{ ansible_pdm_mailserver_domain }}/default.private"
   when: not ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys
     or not ansible_pdm_mailserver_aws_s3_backup_bucket
 
@@ -383,75 +381,63 @@
     value: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   with_items:
-    - "{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
-    - "autoconfig.{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    - "{{ ansible_pdm_mailserver_server_hostname }}"
+    - "{{ ansible_pdm_mailserver_autoconfig_hostname }}"
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_mail_server_domain
-    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 - name: Associate R53 SPF record
   route53:
     command: create
     overwrite: yes
-    record: "{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    record: "{{ ansible_pdm_mailserver_domain }}"
     ttl: 0
     type: TXT
     value: "\"v=spf1 ip4:{{ ansible_pdm_mailserver_aws_ec2_elastic_ip if ansible_pdm_mailserver_aws_ec2_elastic_ip else ansible_ec2_public_ipv4 }} -all\""
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_mail_server_domain
-    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 - name: Associate R53 Dmarc record
   route53:
     command: create
     overwrite: yes
-    record: "_dmarc.{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    record: "_dmarc.{{ ansible_pdm_mailserver_domain }}"
     ttl: 0
     type: TXT
     value: "\"v=DMARC1; p=none\""
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_mail_server_domain
-    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 - name: Grab dkim public key
-  shell: "cat /etc/opendkim/keys/{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}/default.txt | tr '\n' ' ' |  tr '\t' ' ' | grep -oE '\"v=.*\" '"
+  shell: "cat /etc/opendkim/keys/{{ ansible_pdm_mailserver_domain }}/default.txt | tr '\n' ' ' |  tr '\t' ' ' | grep -oE '\"v=.*\" '"
   register: dkim_public_key_data
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_mail_server_domain
-    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 - name: Associate R53 OpenDkim record
   route53:
     command: create
     overwrite: yes
-    record: "default._domainkey.{{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    record: "default._domainkey.{{ ansible_pdm_mailserver_domain }}"
     ttl: 0
     type: TXT
     value: "{{ dkim_public_key_data.stdout }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_mail_server_domain
-    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 - name: Associate R53 MX record
   route53:
     command: create
     overwrite: yes
-    record: "{{ ansible_pdm_mailserver_aws_r53_mx_domain }}"
+    record: "{{ ansible_pdm_mailserver_domain }}"
     ttl: 0
     type: MX
-    value: "10 {{ ansible_pdm_mailserver_aws_r53_mail_server_domain }}"
+    value: "10 {{ ansible_pdm_mailserver_server_hostname }}"
     zone: "{{ ansible_pdm_mailserver_aws_r53_zone }}"
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_r53_mail_server_domain
-    and ansible_pdm_mailserver_aws_r53_mx_domain
     and ansible_pdm_mailserver_aws_r53_zone
 
 - name: Pause for Eip and DNS
@@ -460,11 +446,7 @@
   when: ansible_ec2_instance_id is defined
     and
     (
-      (
-        ansible_pdm_mailserver_aws_r53_mail_server_domain
-        and ansible_pdm_mailserver_aws_r53_mx_domain
-        and ansible_pdm_mailserver_aws_r53_zone
-      )
+      ansible_pdm_mailserver_aws_r53_zone
       or ansible_pdm_mailserver_aws_ec2_elastic_ip
     )
 
@@ -480,14 +462,14 @@
 - name: "Get an SSL certificate for {{ ansible_pdm_mailserver_domain }} from Let's Encrypt"
   shell: "/etc/letsencrypt/letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
   args:
-    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
+    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/privkey.pem"
   when: ansible_ssh_user != "vagrant"
 
 ### Several steps to install a self-signed wildcard key to support offline testing
 
 - name: Create live directory for testing keys
   file:
-    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}"
+    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}"
     state: directory
     owner: root
     group: root
@@ -498,16 +480,16 @@
   become: yes
   command: |-
     openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -days 3650
-    -subj "/C=GB/ST=London/L=London/O=Dummy/CN={{ ansible_pdm_mailserver_domain }}"
-    -keyout /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem
-    -out /etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/fullchain.pem
+    -subj "/C=GB/ST=London/L=London/O=Dummy/CN={{ ansible_pdm_mailserver_server_hostname }}"
+    -keyout /etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/privkey.pem
+    -out /etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/fullchain.pem
   args:
-    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
+    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/privkey.pem"
   when: ansible_ssh_user == "vagrant"
 
 - name: Set permissions on combined SSL public cert
   file:
-    name: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/fullchain.pem"
+    name: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/fullchain.pem"
     mode: 0644
   when: ansible_ssh_user == "vagrant"
 

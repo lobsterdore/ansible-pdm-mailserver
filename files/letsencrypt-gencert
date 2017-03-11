@@ -4,5 +4,5 @@
 # Nginx.
 service nginx stop
 /root/letsencrypt/letsencrypt-auto certonly -c /etc/letsencrypt/cli.conf -d "autoconfig.${1}"
-/root/letsencrypt/letsencrypt-auto certonly -c /etc/letsencrypt/cli.conf -d "${1}"
+/root/letsencrypt/letsencrypt-auto certonly -c /etc/letsencrypt/cli.conf -d "srvr.${1}"
 service nginx start

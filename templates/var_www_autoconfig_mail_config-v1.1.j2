@@ -5,21 +5,21 @@
         <displayName>{{ ansible_pdm_mailserver_domain }}</displayName>
         <displayShortName>{{ ansible_pdm_mailserver_domain }}</displayShortName>
         <incomingServer type="imap">
-            <hostname>{{ ansible_pdm_mailserver_domain }}</hostname>
+            <hostname>{{ ansible_pdm_mailserver_server_hostname }}</hostname>
             <port>993</port>
             <socketType>SSL</socketType>
             <authentication>password-cleartext</authentication>
             <username>%EMAILADDRESS%</username>
         </incomingServer>
         <incomingServer type="pop3">
-            <hostname>{{ ansible_pdm_mailserver_domain }}</hostname>
+            <hostname>{{ ansible_pdm_mailserver_server_hostname }}</hostname>
             <port>995</port>
             <socketType>SSL</socketType>
             <authentication>password-cleartext</authentication>
             <username>%EMAILADDRESS%</username>
         </incomingServer>
         <outgoingServer type="smtp">
-            <hostname>{{ ansible_pdm_mailserver_domain }}</hostname>
+            <hostname>{{ ansible_pdm_mailserver_server_hostname }}</hostname>
             <port>587</port>
             <socketType>STARTTLS</socketType>
             <authentication>password-cleartext</authentication>
