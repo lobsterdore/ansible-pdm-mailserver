@@ -368,7 +368,6 @@
     device_id: "{{ ansible_ec2_instance_id }}"
     ip: "{{ ansible_pdm_mailserver_aws_ec2_elastic_ip }}"
     region: "{{ansible_pdm_mailserver_aws_region }}"
-  register: ansible_pdm_mailserver_aws_ec2_elastic_ip_data
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_ec2_elastic_ip
 
@@ -443,9 +442,9 @@
 
 - name: Pause for Eip and DNS
   pause:
-    seconds: 60
+    seconds: 90
   when: ansible_ec2_instance_id is defined
-    and ansible_pdm_mailserver_aws_ec2_elastic_ip_data.chagned
+    and ansible_pdm_mailserver_aws_ec2_elastic_ip
 
 ### Generate certs
 
