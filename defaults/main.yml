@@ -10,6 +10,7 @@ ansible_pdm_mailserver_aws_r53_zone: no
 
 ansible_pdm_mailserver_aws_s3_backup_bucket: ~
 ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys: false
+ansible_pdm_mailserver_aws_s3_backup_bucket_enable_s3_restore: false
 
 ansible_pdm_mailserver_db_admin_password: ""
 ansible_pdm_mailserver_db_admin_username: "root"

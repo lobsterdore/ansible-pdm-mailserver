@@ -360,6 +360,7 @@
   become: yes
   command: /usr/local/bin/aws_s3_dovecot_restore
   when: ansible_ec2_instance_id is defined
+    and ansible_pdm_mailserver_aws_s3_backup_bucket_enable_s3_restore
     and ansible_pdm_mailserver_aws_s3_backup_bucket
     and ansible_pdm_mailserver_mail_dir_created.changed
 
