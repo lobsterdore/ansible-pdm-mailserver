@@ -3,12 +3,14 @@
 galaxy_info:
   author: David Reed
   description: Install and configure a mailserver using Dovecot, Postfix and MySQL
+  company: Lobsterdore
   license: MIT
-
-  min_ansible_version: 2.x
+  min_ansible_version: 2.0
   platforms:
     - name: Ubuntu
       versions:
         - trusty
-
+  categories:
+    - system
+    - development
 dependencies: []
