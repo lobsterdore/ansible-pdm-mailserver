@@ -20,8 +20,7 @@ test: test_deps lint
 	vagrant provision
 
 test_deps:
-	rm -rf lobsterdore.pdm-mailserver
-	ln -s . lobsterdore.pdm-mailserver
+	ln -sf . lobsterdore.pdm-mailserver
 
 lint:
 	find defaults/ meta/ tasks/ templates/ vars/ -name "*.yml" | xargs -I{} ansible-lint {}

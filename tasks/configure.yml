@@ -463,52 +463,53 @@
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_ec2_elastic_ip
 
-### Generate certs
-
 - name: Configure LetsEncrypt
   template:
-    src: etc_letsencrypt_cli.conf.j2
     dest: /etc/letsencrypt/cli.conf
-    owner: root
     group: root
+    mode: 0644
+    owner: root
+    src: etc_letsencrypt_cli.conf.j2
 
 - name: "Get an SSL certificate for {{ ansible_pdm_mailserver_domain }} from Let's Encrypt"
   shell: "/etc/letsencrypt/letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
   args:
-    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/privkey.pem"
-  when: ansible_ssh_user != "vagrant"
-
-### Several steps to install a self-signed wildcard key to support offline testing
+    creates: "/etc/letsencrypt/live/{{ item }}/privkey.pem"
+  when: local_env is not defined
 
 - name: Create live directory for testing keys
   file:
-    dest: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}"
+    dest: "/etc/letsencrypt/live/{{ item }}"
     state: directory
     owner: root
     group: root
     mode: 0755
-  when: ansible_ssh_user == "vagrant"
+  with_items:
+    - "{{ ansible_pdm_mailserver_autoconfig_hostname }}"
+    - "{{ ansible_pdm_mailserver_server_hostname }}"
+  when: local_env is defined
 
 - name: Create self-signed SSL certs for testing
-  become: yes
   command: |-
     openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -days 3650
-    -subj "/C=GB/ST=London/L=London/O=Dummy/CN={{ ansible_pdm_mailserver_server_hostname }}"
-    -keyout /etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/privkey.pem
-    -out /etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/fullchain.pem
+    -subj "/C=GB/ST=London/L=London/O=Dummy/CN={{ item }}"
+    -keyout /etc/letsencrypt/live/{{ item }}/privkey.pem
+    -out /etc/letsencrypt/live/{{ item }}/fullchain.pem
   args:
-    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/privkey.pem"
-  when: ansible_ssh_user == "vagrant"
+    creates: "/etc/letsencrypt/live/{{ item }}/privkey.pem"
+  with_items:
+    - "{{ ansible_pdm_mailserver_autoconfig_hostname }}"
+    - "{{ ansible_pdm_mailserver_server_hostname }}"
+  when: local_env is defined
 
-- name: Set permissions on combined SSL public cert
+- name: Set permissions on combined SSL certs
   file:
-    name: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_server_hostname }}/fullchain.pem"
+    name: "/etc/letsencrypt/live/{{ item }}/fullchain.pem"
     mode: 0644
-  when: ansible_ssh_user == "vagrant"
-
-### End of several steps to install a self-signed wildcard key to support offline testing
-
-### End generate certs
+  with_items:
+    - "{{ ansible_pdm_mailserver_autoconfig_hostname }}"
+    - "{{ ansible_pdm_mailserver_server_hostname }}"
+  when: local_env is defined
 
 - name: Start mysql
   service:

@@ -3,6 +3,9 @@
 - name: Test PDM Mailserver Role
   hosts: all
 
+  vars:
+    local_env: true
+
   pre_tasks:
     - name: Update apt
       become: yes
@@ -16,3 +19,73 @@
     - role: lobsterdore.pdm-mailserver
       become: yes
 
+  post_tasks:
+    - name: rspamd should already be started
+      become: yes
+      service:
+        name: rspamd
+        state: started
+      register: rspamd_start_check
+      failed_when: rspamd_start_check.changed
+      tags:
+        - test
+
+    - name: rmilter should already be started
+      become: yes
+      service:
+        name: rmilter
+        state: started
+      register: rmilter_start_check
+      failed_when: rmilter_start_check.changed
+      tags:
+        - test
+
+    - name: opendmarc should already be started
+      become: yes
+      service:
+        name: opendmarc
+        state: started
+      register: opendmarc_start_check
+      failed_when: opendmarc_start_check.changed
+      tags:
+        - test
+
+    - name: opendkim should already be started
+      become: yes
+      service:
+        name: opendkim
+        state: started
+      register: opendkim_start_check
+      failed_when: opendkim_start_check.changed
+      tags:
+        - test
+
+    - name: postfix should already be started
+      become: yes
+      service:
+        name: postfix
+        state: started
+      register: postfix_start_check
+      failed_when: postfix_start_check.changed
+      tags:
+        - test
+
+    - name: dovecot should already be started
+      become: yes
+      service:
+        name: dovecot
+        state: started
+      register: dovecot_start_check
+      failed_when: dovecot_start_check.changed
+      tags:
+        - test
+
+    - name: nginx should already be started
+      become: yes
+      service:
+        name: nginx
+        state: started
+      register: nginx_start_check
+      failed_when: nginx_start_check.changed
+      tags:
+        - test
