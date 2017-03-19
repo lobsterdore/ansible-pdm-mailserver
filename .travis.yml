@@ -2,13 +2,19 @@
 
 group: stable
 dist: trusty
+
 branches:
   only:
     - develop
     - master
 
-language: python
-python: "2.7"
+sudo: required
+services:
+    - docker
+
+language: ruby
+rvm:
+  - 2.2
 
 env:
   - ANSIBLE_INSTALL_VERSION=2.0.2.0
@@ -17,10 +23,6 @@ env:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo /etc/init.d/mysql stop
-  - sudo apt-get purge -y "mysql-*"
-  - sudo rm -rf /var/lib/mysql/
-  - sudo userdel -r mysql
 
 install:
   - pip install ansible==${ANSIBLE_INSTALL_VERSION} ansible-lint
@@ -28,16 +30,11 @@ install:
 
 script:
   # Setup
-  - make travis_test_deps
   - make test_deps
-  #Test formatting
+  # Test formatting
   - make lint
-  # Run the "build" stage
-  - ansible-playbook -i 'localhost,' -c local playbook.yml --tags=build
-  # Run the "configure" stage
-  - ansible-playbook -i 'localhost,' -c local playbook.yml --tags=configure
-  # Run the "test" stage
-  - ansible-playbook -i 'localhost,' -c local playbook.yml --tags=test
+  # Run all tests
+  - make test
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

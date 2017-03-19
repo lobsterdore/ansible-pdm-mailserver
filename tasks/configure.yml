@@ -6,6 +6,13 @@
     dest: /etc/hosts
     line: "127.0.0.1 localhost {{ ansible_hostname }} {{ ansible_pdm_mailserver_server_hostname }}"
     regexp: ^127\.0\.0\.1
+  when: local_env is not defined
+
+- name: Start mysql
+  service:
+    name: mysql
+    state: started
+  when: ansible_pdm_mailserver_db_mysql_install
 
 - name: Create database for mail server
   mysql_db:
@@ -510,12 +517,6 @@
     - "{{ ansible_pdm_mailserver_autoconfig_hostname }}"
     - "{{ ansible_pdm_mailserver_server_hostname }}"
   when: local_env is defined
-
-- name: Start mysql
-  service:
-    name: mysql
-    state: started
-  when: ansible_pdm_mailserver_db_mysql_install
 
 - name: Start redis
   service:

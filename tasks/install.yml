@@ -24,6 +24,7 @@
     state: installed
     update_cache: yes
   with_items:
+    - cron
     - rspamd
     - rmilter
     - nginx

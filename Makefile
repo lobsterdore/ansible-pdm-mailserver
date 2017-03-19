@@ -16,11 +16,10 @@ help:
 
 ## Test role locally using Vagrant
 test: test_deps lint
-	vagrant up --no-provision
-	vagrant provision
+	./bin/kitchen test
 
 test_deps:
-	ln -sf . lobsterdore.pdm-mailserver
+	bundle install
 
 lint:
 	find defaults/ meta/ tasks/ templates/ vars/ -name "*.yml" | xargs -I{} ansible-lint {}
@@ -29,11 +28,5 @@ lint:
 clean:
 	rm -rf lobsterdore.pdm-mailserver
 	vagrant destroy -f
+	./bin/kitchen destroy
 
-## Dependencies for Travis CI
-travis_test_deps:
-	@echo "noop"
-
-## Clean up after Travis CI
-travis_test_clean:
-	@echo "noop"

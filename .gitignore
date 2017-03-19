@@ -3,3 +3,8 @@
 *.bak
 *.retry
 lobsterdore.*
+*.swp
+vendor/
+bin/
+.kitchen/
+Dockerfile*
