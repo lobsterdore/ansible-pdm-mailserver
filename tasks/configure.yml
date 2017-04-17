@@ -481,7 +481,7 @@
 - name: "Get an SSL certificate for {{ ansible_pdm_mailserver_domain }} from Let's Encrypt"
   shell: "/etc/letsencrypt/letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
   args:
-    creates: "/etc/letsencrypt/live/{{ item }}/privkey.pem"
+    creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
   when: local_env is not defined
 
 - name: Create live directory for testing keys
