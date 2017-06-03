@@ -18,7 +18,7 @@ Vagrant.configure(2) do |config|
   config.hostsupdater.aliases = [ "autoconfig.mail.local.example.io" ]
 
   config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playbook.yml"
+    ansible.playbook = "test/integration/default/default.yml"
     ansible.tags = [
       'build',
       'configure',

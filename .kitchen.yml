@@ -6,6 +6,7 @@ driver_config:
   privileged: true
   run_command: /sbin/init
   provision_command:
+    - apt-get update
     - apt-get install -y libffi-dev libssl-dev libyaml-cpp-dev apt-transport-https
     - apt-get install -y python python-dev python-pip python-setuptools git build-essential
     - pip install pip --upgrade -qqq
