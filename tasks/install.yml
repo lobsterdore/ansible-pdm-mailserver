@@ -17,6 +17,7 @@
   with_items:
     - "deb http://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
     - "deb http://rspamd.com/apt-stable/ {{ ansible_distribution_release }} main"
+    - ppa:certbot/certbot
 
 - name: Install necessities and nice-to-haves
   apt:
@@ -25,6 +26,7 @@
     update_cache: yes
   with_items:
     - cron
+    - fail2ban
     - rspamd
     - nginx
     - libsasl2-modules
@@ -46,6 +48,7 @@
     - git
     - python-mysqldb
     - python-pip
+    - certbot
 
 - name: Install AWS CLI
   pip:
@@ -66,13 +69,6 @@
   with_items:
     - redis-server
   when: ansible_pdm_mailserver_redis_install
-
-- name: Download stable LetsEncrypt release
-  git:
-    repo: https://github.com/certbot/certbot
-    dest: /root/letsencrypt
-    update: no
-    version: v0.9.3
 
 - name: Create directory for LetsEncrypt configuration and certificates
   file:
@@ -109,11 +105,6 @@
     mode: 0750
     state: directory
   when: local_env is defined
-
-- name: Install LetsEncrypt package dependencies
-  command: /root/letsencrypt/letsencrypt-auto --help
-  register: le_deps_result
-  changed_when: "'Bootstrapping dependencies' in le_deps_result.stdout"
 
 - name: Install generate script for LetsEncrypt
   copy:
