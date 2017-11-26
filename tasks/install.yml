@@ -26,7 +26,6 @@
   with_items:
     - cron
     - rspamd
-    - rmilter
     - nginx
     - libsasl2-modules
     - postfix
@@ -66,7 +65,7 @@
     state: installed
   with_items:
     - redis-server
-  when: ansible_pdm_mailserver_rmilter_redis_install
+  when: ansible_pdm_mailserver_redis_install
 
 - name: Download stable LetsEncrypt release
   git:
@@ -265,11 +264,6 @@
   notify:
     - restart opendmarc
     - restart postfix
-
-- name: Configure rmilter service
-  copy:
-    src: lib_systemd_system_rmilter.socket
-    dest: /lib/systemd/system/rmilter.socket
 
 - name: Copy check-rbl into place
   copy:

@@ -31,16 +31,6 @@
       tags:
         - test
 
-    - name: rmilter should already be started
-      become: yes
-      service:
-        name: rmilter
-        state: started
-      register: rmilter_start_check
-      failed_when: rmilter_start_check.changed
-      tags:
-        - test
-
     - name: opendmarc should already be started
       become: yes
       service:

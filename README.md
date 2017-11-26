@@ -10,8 +10,10 @@ Develop: [![Build Status](https://travis-ci.org/lobsterdore/ansible-pdm-mailserv
 * [Contributing](#contributing)
 
 Install and configures Postfix, Dovecot and supporting packages, a complete all in one
-mailserver based on Sovereign. In addition to installing and configuring software, this
-role can also configure an EC2 instance with DNS entries and backup/restore from S3.
+mailserver based on [Sovereign](https://github.com/sovereign/sovereign).
+
+In addition to installing and configuring software, this role can also configure
+an EC2 instance with DNS entries and backup/restore from S3.
 
 
 
