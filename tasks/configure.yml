@@ -169,22 +169,6 @@
   notify:
     - restart dovecot
 
-- name: Configure rmilter
-  template:
-    mode: 0664
-    src: etc_rmilter_conf_local.j2
-    dest: /etc/rmilter.conf.local
-  notify:
-    - restart rmilter
-
-- name: Configure rmilter redis settings
-  template:
-    mode: 0664
-    src: etc_rmilter_conf_d_rmilter.redis.conf.j2
-    dest: /etc/rmilter.conf.d/rmilter.redis.conf
-  notify:
-    - restart rmilter
-
 - name: Configure rspamd redis settings
   template:
     mode: 0664
@@ -522,39 +506,16 @@
   service:
     name: redis-server
     state: started
-  when: ansible_pdm_mailserver_rmilter_redis_install
+  when: ansible_pdm_mailserver_redis_install
 
-- name: Start rspamd
+- name: Start core services
   service:
-    name: rspamd
+    name: "{{ item }}"
     state: started
-
-- name: Start rmilter
-  service:
-    name: rmilter
-    state: started
-
-- name: Start opendmarc
-  service:
-    name: opendmarc
-    state: started
-
-- name: Start opendkim
-  service:
-    name: opendkim
-    state: started
-
-- name: Start postfix
-  service:
-    name: postfix
-    state: started
-
-- name: Start dovecot
-  service:
-    name: dovecot
-    state: started
-
-- name: Start nginx
-  service:
-    name: dovecot
-    state: started
+  with_items:
+    - rspamd
+    - opendmarc
+    - opendkim
+    - postfix
+    - dovecot
+    - nginx

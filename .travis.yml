@@ -26,8 +26,8 @@ before_install:
   - sudo apt-get update -qq
 
 install:
-  - pip install ansible==${ANSIBLE_INSTALL_VERSION} ansible-lint
-  - pip install virtualenv
+  - sudo pip install ansible==${ANSIBLE_INSTALL_VERSION} ansible-lint
+  - sudo pip install virtualenv
 
 script:
   # Setup
