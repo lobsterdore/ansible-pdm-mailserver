@@ -336,6 +336,47 @@
   notify:
     - reload nginx
 
+- name: Fix Fail2Ban Systemd backend
+  ini_file:
+    dest: /etc/fail2ban/jail.local
+    mode: 0644
+    option: backend
+    section: DEFAULT
+    value: "{{ 'systemd' if ansible_service_mgr == 'systemd' else 'auto' }}"
+  notify:
+    - restart fail2ban
+
+- name: Configure Fail2Ban Dovecot definition
+  ini_file:
+    dest: /etc/fail2ban/filter.d/dovecot-pop3imap.conf
+    mode: 0644
+    option: "{{item.key }}"
+    section: Definition
+    value: "{{ item.value }}"
+  with_dict:
+    failregex: "(?: pop3-login|imap-login): (?:Authentication failure|Aborted login \\(auth failed|Aborted login \\(tried to use disabled|Disconnected \\(auth failed).*rip=(?P<host>\\S*),.*"
+    ignoreregex: ""
+  notify:
+    - restart fail2ban
+
+- name: Activate Fail2Ban Dovecot
+  ini_file:
+    dest: /etc/fail2ban/jail.conf
+    mode: 0644
+    option: "{{item.key }}"
+    section: dovecot-pop3imap
+    value: "{{ item.value }}"
+  with_dict:
+    enabled: true
+    filter: dovecot-pop3imap
+    action: "iptables-multiport[name=dovecot-pop3imap, port=\"pop3,imap\", protocol=tcp]"
+    logpath: /var/log/mail.log
+    maxretry: 6
+    findtime: 1200
+    bantime: 1200
+  notify:
+    - restart fail2ban
+
 - name: Gather AWS facts
   action: ec2_facts
   register: ec2_vars
@@ -514,6 +555,7 @@
     state: started
   with_items:
     - rspamd
+    - fail2ban
     - opendmarc
     - opendkim
     - postfix
