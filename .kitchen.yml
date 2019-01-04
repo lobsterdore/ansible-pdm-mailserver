@@ -11,7 +11,7 @@ driver_config:
     - apt-get install -y python python-dev python-pip python-setuptools git build-essential
     - pip install pip --upgrade -qqq
     - pip install setuptools paramiko pycparser pycrypto --upgrade -qqq
-    - "pip install ansible==<%= ENV['ANSIBLE_INSTALL_VERSION'] || '2.1.4.0' %> --upgrade -qqq"
+    - "pip install ansible==<%= ENV['ANSIBLE_INSTALL_VERSION'] || '2.7.1' %> --upgrade -qqq"
 
 transport:
   connection_timeout: 120
