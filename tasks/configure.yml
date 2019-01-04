@@ -336,6 +336,35 @@
   notify:
     - reload nginx
 
+- name: Copy master.cf
+  copy:
+    src: etc_postfix_master.cf
+    dest: /etc/postfix/master.cf
+    owner: root
+    group: root
+  notify:
+    - restart postfix
+
+- name: Copy Fail2ban filters for Dovecot
+  copy:
+    src: etc_fail2ban_filter.d_pdm-dovecot.conf
+    dest: /etc/fail2ban/filter.d/pdm-dovecot.conf
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - restart fail2ban
+
+- name: Copy Fail2ban filters for Postfix
+  copy:
+    src: etc_fail2ban_filter.d_pdm-postfix-sasl.conf
+    dest: /etc/fail2ban/filter.d/pdm-postfix-sasl.conf
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - restart fail2ban
+
 - name: Fix Fail2Ban Systemd backend
   ini_file:
     dest: /etc/fail2ban/jail.local
@@ -346,34 +375,41 @@
   notify:
     - restart fail2ban
 
-- name: Configure Fail2Ban Dovecot definition
-  ini_file:
-    dest: /etc/fail2ban/filter.d/dovecot-pop3imap.conf
-    mode: 0644
-    option: "{{item.key }}"
-    section: Definition
-    value: "{{ item.value }}"
-  with_dict:
-    failregex: "(?: pop3-login|imap-login): (?:Authentication failure|Aborted login \\(auth failed|Aborted login \\(tried to use disabled|Disconnected \\(auth failed).*rip=(?P<host>\\S*),.*"
-    ignoreregex: ""
-  notify:
-    - restart fail2ban
-
 - name: Activate Fail2Ban Dovecot
   ini_file:
-    dest: /etc/fail2ban/jail.conf
+    create: yes
+    dest: /etc/fail2ban/jail.local
     mode: 0644
     option: "{{item.key }}"
-    section: dovecot-pop3imap
+    section: pdm-dovecot
     value: "{{ item.value }}"
   with_dict:
     enabled: true
-    filter: dovecot-pop3imap
-    action: "iptables-multiport[name=dovecot-pop3imap, port=\"pop3,imap\", protocol=tcp]"
+    filter: pdm-dovecot
+    action: "iptables-multiport[name=dovecot-pop3imap, port=\"pop3,pop3s,imap,imaps\", protocol=tcp]"
     logpath: /var/log/mail.log
-    maxretry: 6
+    maxretry: 3
     findtime: 1200
-    bantime: 1200
+    bantime: 2400
+  notify:
+    - restart fail2ban
+
+- name: Activate Fail2Ban Postfix
+  ini_file:
+    create: yes
+    dest: /etc/fail2ban/jail.local
+    mode: 0644
+    option: "{{item.key }}"
+    section: pdm-postfix-sasl
+    value: "{{ item.value }}"
+  with_dict:
+    enabled: true
+    filter: pdm-postfix-sasl
+    port: smtp,ssmtp,submission
+    logpath: /var/log/mail.log
+    maxretry: 3
+    findtime: 1200
+    bantime: 2400
   notify:
     - restart fail2ban
 
