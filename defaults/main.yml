@@ -4,15 +4,14 @@ ansible_pdm_mailserver_admin_email: "{{ ansible_pdm_mailserver_main_user_name }}
 ansible_pdm_mailserver_autoconfig_hostname: "autoconfig.{{ ansible_pdm_mailserver_domain }}"
 
 ansible_pdm_mailserver_aws_ec2_elastic_ip: no
+ansible_pdm_mailserver_aws_install_cli: yes
 ansible_pdm_mailserver_aws_region: "eu-west-1"
-
 ansible_pdm_mailserver_aws_r53_zone: no
-
 ansible_pdm_mailserver_aws_s3_backup_bucket: ~
 ansible_pdm_mailserver_aws_s3_backup_bucket_enable_dkim_keys: false
 ansible_pdm_mailserver_aws_s3_backup_bucket_enable_s3_restore: false
 
-ansible_pdm_mailserver_db_admin_password: ""
+ansible_pdm_mailserver_db_admin_password: "password"
 ansible_pdm_mailserver_db_admin_username: "root"
 ansible_pdm_mailserver_db_database: "mailserver"
 ansible_pdm_mailserver_db_host: 127.0.0.1

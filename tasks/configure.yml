@@ -1,7 +1,6 @@
 ---
 
 - name: Ensure local hostnames
-  become: yes
   lineinfile:
     dest: /etc/hosts
     line: "127.0.0.1 localhost {{ ansible_hostname }} {{ ansible_pdm_mailserver_server_hostname }}"
@@ -13,6 +12,31 @@
     name: mysql
     state: started
   when: ansible_pdm_mailserver_db_mysql_install
+
+- name: Check MySQL root access
+  mysql_variables:
+    login_host: "{{ ansible_pdm_mailserver_db_host }}"
+    login_password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    login_user: "{{ ansible_pdm_mailserver_db_admin_username }}"
+    variable: hostname
+  failed_when: no
+  register: ansible_pdm_mailserver_admin_access
+  when:
+    - ansible_pdm_mailserver_db_mysql_install
+    - ansible_pdm_mailserver_db_admin_username == 'root'
+
+- name: Ensure password for root user for MySQL 5.7+
+  mysql_user:
+    name: root
+    password: "{{ ansible_pdm_mailserver_db_admin_password }}"
+    state: present
+    host: localhost
+    priv: '*.*:ALL,GRANT'
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when:
+    - ansible_pdm_mailserver_db_mysql_install
+    - ansible_pdm_mailserver_db_admin_username == 'root'
+    - "'Access denied for user' in ansible_pdm_mailserver_admin_access.msg"
 
 - name: Create database for mail server
   mysql_db:
@@ -53,6 +77,8 @@
     target: /etc/postfix/import.sql
   notify:
     - restart postfix
+  tags:
+    - skip_ansible_lint
   when: ansible_pdm_mailserver_db_created.changed
 
 - name: Copy main.cf
@@ -253,6 +279,20 @@
     owner: root
     group: root
 
+- name: Fix OpenDMARC setting for Bionic
+  command: /lib/opendmarc/opendmarc.service.generate
+  args:
+    creates: /etc/systemd/system/opendmarc.service.d/override.conf
+  register: ansible_pdm_mailserver_opendmarc_bionic_fix
+  when: ansible_distribution_release == "bionic"
+
+- name: Reload SystemD after fix for OpenDMARC setting for Bionic
+  systemd:
+    daemon_reload: yes
+  when: ansible_pdm_mailserver_opendmarc_bionic_fix.changed
+  tags:
+    - skip_ansible_lint
+
 - name: Create database for OpenDMARC reports
   mysql_db:
     login_host: "{{ ansible_pdm_mailserver_db_host }}"
@@ -291,6 +331,8 @@
     login_password: "{{ ansible_pdm_mailserver_db_password }}"
     target: /usr/share/doc/opendmarc/import.sql
   when: ansible_pdm_mailserver_db_opendmarc_created.changed
+  tags:
+    - skip_ansible_lint
   notify:
     - restart opendmarc
 
@@ -425,7 +467,6 @@
   delay: 5
 
 - name: Ensures S3 backup and restore scripts
-  become: yes
   template:
     dest: "{{ item.dest }}"
     mode: 0750
@@ -439,7 +480,6 @@
     and ansible_pdm_mailserver_aws_s3_backup_bucket
 
 - name: Ensures S3 backup cron job
-  become: yes
   cron:
     hour: "*"
     job: "PATH=$PATH /usr/local/bin/aws_s3_dovecot_backup > /var/log/aws_s3_dovecot_backup.log 2>&1"
@@ -448,8 +488,9 @@
     weekday: 1-7
 
 - name: Restore mail from s3
-  become: yes
   command: /usr/local/bin/aws_s3_dovecot_restore
+  tags:
+    - skip_ansible_lint
   when: ansible_ec2_instance_id is defined
     and ansible_pdm_mailserver_aws_s3_backup_bucket_enable_s3_restore
     and ansible_pdm_mailserver_aws_s3_backup_bucket
@@ -553,7 +594,7 @@
     src: etc_letsencrypt_cli.conf.j2
 
 - name: "Get an SSL certificate for {{ ansible_pdm_mailserver_domain }} from Let's Encrypt"
-  shell: "/etc/letsencrypt/letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
+  command: "/etc/letsencrypt/letsencrypt-gencert {{ ansible_pdm_mailserver_domain }}"
   args:
     creates: "/etc/letsencrypt/live/{{ ansible_pdm_mailserver_domain }}/privkey.pem"
   when: local_env is not defined
@@ -591,6 +632,15 @@
     - "{{ ansible_pdm_mailserver_autoconfig_hostname }}"
     - "{{ ansible_pdm_mailserver_server_hostname }}"
   when: local_env is defined
+
+- name: Fix redis bind config for Bionic
+  lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^bind 127\.0\.0\.1'
+    line: 'bind 127.0.0.1'
+  when:
+    - ansible_distribution_release == "bionic"
+    - ansible_pdm_mailserver_redis_install
 
 - name: Start redis
   service:

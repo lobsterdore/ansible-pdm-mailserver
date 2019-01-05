@@ -4,7 +4,7 @@ required_plugins.each do |plugin|
 end
 
 Vagrant.configure(2) do |config|
-  config.vm.box = "#{ENV['VAGRANT_BOX'] || 'ubuntu/trusty64'}"
+  config.vm.box = "#{ENV['VAGRANT_BOX'] || 'bento/ubuntu-18.04'}"
 
   # Setup Python 2.7 if missing
   config.vm.provision "shell" do |shell|

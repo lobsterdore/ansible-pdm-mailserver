@@ -1,4 +1,4 @@
 localhost
 10.0.0.0/24
-{{ ansible_default_ipv4.address }}
+{{ (ansible_default_ipv4 | default({'address': ''}))["address"] }}
 {{ "/n".join(ansible_pdm_mailserver_friendly_networks) }}

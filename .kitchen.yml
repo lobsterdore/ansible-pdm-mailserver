@@ -22,6 +22,7 @@ provisioner:
   ansible_verbose: true
   ansible_verbosity: 2
   extra_vars:
+    ansible_pdm_mailserver_aws_install_cli: no
     test_mode: yes
   hosts: test-kitchen
   name: ansible_playbook
@@ -36,15 +37,20 @@ provisioner:
   sudo_command: "sudo -HE"
 
 platforms:
+  - name: ubuntu-14.04
+    driver_config:
+      image: ubuntu-upstart:14.04
+      disable_upstart: false
+
   - name: ubuntu-16.04
     driver_config:
       image: solita/ubuntu-systemd:16.04
       run_options: '--security-opt seccomp=unconfined --stop-signal=SIGRTMIN+3 --tmpfs /run --tmpfs /run/lock -v /sys/fs/cgroup:/sys/fs/cgroup:ro'
 
-  - name: ubuntu-14.04
+  - name: ubuntu-18.04
     driver_config:
-      image: ubuntu-upstart:14.04
-      disable_upstart: false
+      image: solita/ubuntu-systemd:18.04
+      run_options: '--security-opt seccomp=unconfined --stop-signal=SIGRTMIN+3 --tmpfs /run --tmpfs /run/lock -v /sys/fs/cgroup:/sys/fs/cgroup:ro'
 
 suites:
   - name: default
