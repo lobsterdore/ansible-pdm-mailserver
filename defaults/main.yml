@@ -60,6 +60,6 @@ ansible_pdm_mailserver_virtual_domains:
 ansible_pdm_mailserver_virtual_users:
   - account: "{{ ansible_pdm_mailserver_main_user_name }}"
     domain: "{{ ansible_pdm_mailserver_domain }}"
-    # Example password "password"
-    password_hash: "$6$2qWeQLBahbfcmOQJ$RLKAOEWdt2gU8/ltKjRdelj51KvW4QKzAhCasAcHwqDy736nttxbS4qnL9i9O2j66YRRqgXUbJFNndG5BB6mR."
+    password_hash: |-
+      $6$2qWeQLBahbfcmOQJ$RLKAOEWdt2gU8/ltKjRdelj51KvW4QKzAhCasAcHwqDy736nttxbS4qnL9i9O2j66YRRqgXUbJFNndG5BB6mR.
     domain_pk_id: 1

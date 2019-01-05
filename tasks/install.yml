@@ -5,6 +5,10 @@
     id: "{{ item }}"
     keyserver: hkps.pool.sks-keyservers.net
     state: present
+  retries: 2
+  delay: 5
+  register: ansible_pdm_mailserver_key_success
+  until: ansible_pdm_mailserver_key_success is succeeded
   with_items:
     # nginx
     - 7BD9BF62
@@ -50,9 +54,15 @@
     - python-pip
     - certbot
 
+- name: Upgrade Pip
+  pip:
+    extra_args: -U
+    name: pip==18.1
+
 - name: Install AWS CLI
   pip:
-    name: awscli
+    extra_args: -U
+    name: awscli==1.15.*
 
 - name: Install MySQL
   apt:
