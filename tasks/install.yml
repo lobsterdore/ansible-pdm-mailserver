@@ -28,6 +28,9 @@
     pkg: "{{ item }}"
     state: installed
     update_cache: yes
+  register: ansible_pdm_mailserver_apt_install
+  until: ansible_pdm_mailserver_apt_install is success
+  retries: 1
   with_items:
     - cron
     - fail2ban
@@ -54,30 +57,31 @@
     - python-pip
     - certbot
 
-- name: Upgrade Pip
-  pip:
-    extra_args: -U
-    name: pip==18.1
-
 - name: Install AWS CLI
   pip:
-    extra_args: -U
-    name: awscli==1.15.*
+    name: awscli
+  when: ansible_pdm_mailserver_aws_install_cli
+  register: ansible_pdm_mailserver_awscli_install
+  until: ansible_pdm_mailserver_awscli_install is success
+  retries: 1
 
 - name: Install MySQL
   apt:
-    pkg: "{{ item }}"
+    pkg: mysql-server
     state: installed
-  with_items:
-    - mysql-server
+  register: ansible_pdm_mailserver_mysql_install
+  until: ansible_pdm_mailserver_mysql_install is success
+  retries: 1
   when: ansible_pdm_mailserver_db_mysql_install
 
 - name: Install Redis
   apt:
-    pkg: "{{ item }}"
+    pkg: redis-server
     state: installed
-  with_items:
-    - redis-server
+  register: ansible_pdm_mailserver_redis_install
+  until: ansible_pdm_mailserver_redis_install is success
+  retries: 1
+
   when: ansible_pdm_mailserver_redis_install
 
 - name: Create directory for LetsEncrypt configuration and certificates
@@ -165,7 +169,7 @@
   copy:
     dest: /etc/nginx/nginx.conf
     group: root
-    mode: 622
+    mode: 0622
     owner: root
     src: etc_nginx_nginx.conf
   notify:
@@ -279,6 +283,7 @@
     hour: "2"
     minute: "0"
     job: "perl /opt/check-rbl.pl -i {{ ansible_default_ipv4.address }}"
+  when: ansible_default_ipv4 is defined
 
 - name: Create directory for mail autoconfiguration virtualhost
   file:

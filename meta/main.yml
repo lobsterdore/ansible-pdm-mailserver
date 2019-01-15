@@ -5,13 +5,13 @@ galaxy_info:
   description: Install and configure a mailserver using Dovecot, Postfix and MySQL
   company: Lobsterdore
   license: MIT
-  min_ansible_version: 2.0
+  min_ansible_version: 2.4
   platforms:
     - name: Ubuntu
       versions:
         - trusty
         - xenial
-  categories:
+  galaxy_tags:
     - system
     - development
 dependencies: []
