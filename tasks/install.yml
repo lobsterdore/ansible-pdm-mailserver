@@ -30,7 +30,7 @@
     update_cache: yes
   register: ansible_pdm_mailserver_apt_install
   until: ansible_pdm_mailserver_apt_install is success
-  retry: 1
+  retries: 1
   with_items:
     - cron
     - fail2ban
@@ -63,7 +63,7 @@
   when: ansible_pdm_mailserver_aws_install_cli
   register: ansible_pdm_mailserver_awscli_install
   until: ansible_pdm_mailserver_awscli_install is success
-  retry: 1
+  retries: 1
 
 - name: Install MySQL
   apt:
@@ -71,7 +71,7 @@
     state: installed
   register: ansible_pdm_mailserver_mysql_install
   until: ansible_pdm_mailserver_mysql_install is success
-  retry: 1
+  retries: 1
   when: ansible_pdm_mailserver_db_mysql_install
 
 - name: Install Redis
@@ -80,7 +80,7 @@
     state: installed
   register: ansible_pdm_mailserver_redis_install
   until: ansible_pdm_mailserver_redis_install is success
-  retry: 1
+  retries: 1
 
   when: ansible_pdm_mailserver_redis_install
 
